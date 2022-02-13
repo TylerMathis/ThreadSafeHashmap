@@ -1,2 +1,5 @@
 test: Test*.cpp
-	g++ $^ -std=c++17 -Wall && ./a.out; rm a.out
+	for file in $^; do \
+		g++ $${file} -std=c++17 -Wall && ./a.out; rm a.out; \
+	done
+
