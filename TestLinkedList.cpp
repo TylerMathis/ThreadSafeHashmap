@@ -11,14 +11,14 @@ int main() {
 		linkedList.add(i);
 	assert(linkedList.size() == 10);
 	for (int i = 0; i < 10; i++)
-		assert(linkedList.contains(i));
+		assert(linkedList.get(i) != nullptr);
 
 	for (int i = 0; i < 10; i += 2)
 		linkedList.remove(i);
 	assert(linkedList.size() == 5);
 	for (int i = 0; i < 10; i++) {
-		if (i & 1) assert(linkedList.contains(i));
-		else assert(!linkedList.contains(i));
+		if (i & 1) assert(linkedList.get(i) != nullptr);
+		else assert(linkedList.get(i) == nullptr);
 	}
 
 	return 0;

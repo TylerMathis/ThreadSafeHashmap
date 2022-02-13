@@ -59,17 +59,17 @@ namespace ll {
 			return true;
 		}
 
-		// Returns whether or not a value is contained in the list
-		bool contains(T val) {
+		// Returns the value if it exists, null otherwise
+		T *get(T val) {
 			// If we are empty, exit early
-			if (curSize == 0) return false;
+			if (curSize == 0) return nullptr;
 
 			// Check for existence
 			Node<T> *curNode = head;
 			while (curNode != nullptr && curNode->val != val)
 				curNode = curNode->next;
 
-			return curNode != nullptr;
+			return curNode == nullptr ? nullptr : &(curNode->val);
 		}
 
 		// Get the current size
