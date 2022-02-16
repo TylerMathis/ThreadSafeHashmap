@@ -49,6 +49,23 @@ namespace ll {
 		// Construct a new Linked-List
 		LinkedList() : curSize(0) {}
 
+		// Destructor, free all nodes
+		~LinkedList() {
+			// Obtain lock on head
+			Node<T> *mover = head;
+			mover->lock();
+
+			// Free everything
+			while (mover != nullptr) {
+				Node<T> *next = mover->getNextAndLock();
+				
+				mover->unlock();
+				delete mover;
+
+				mover = next;
+			}
+		}
+
 		// Returns the head. Not thread safe
 		Node<T> *DANGEROUS_getHead() { return head; }
 
