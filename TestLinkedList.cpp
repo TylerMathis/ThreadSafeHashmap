@@ -65,7 +65,7 @@ int main() {
 			assert(threadedList.remove(x));
 	};
 
-	const int THREADS = 8, LIM = 10'000;
+	const int THREADS = 4, LIM = 10'000;
 	cout << "\nBEGINNING THREADED CHECKS\n";
 	cout << "Threads: " << THREADS << "\n";
 	cout << "Elements: " << LIM << "\n";
