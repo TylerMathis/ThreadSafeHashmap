@@ -1,75 +1,161 @@
+#include <iostream>
 #include <cstddef>
+#include <mutex>
+#include <atomic>
+
+using std::mutex;
+using std::atomic_size_t;
 
 namespace ll {
+
 	// Simple Linked-List node
 	template<class T>
 	class Node {
+	private:
+		// Lock
+		mutex mtx;
+
 	public:
+		// Member variables
 		Node<T> *next = nullptr;
 		T val;
+
+		// Construct
+		Node() {} // Dummy node for head
 		Node(T val) : val(val) {}
+
+		// Wrappers for thread control
+		void lock() { mtx.lock(); }
+		void unlock() { mtx.unlock(); }
+
+		// Lock the next node and return it
+		Node<T> *getNextAndLock() {
+			if (next == nullptr)
+				return nullptr;
+			next->mtx.lock();
+			return next;
+		}
 	};
 
 	// Linked-List implementation
 	template<class T>
 	class LinkedList {
 	private:
-		Node<T> *head = nullptr;
-		size_t curSize;
+		// Member variables
+		Node<T> *head = new Node<T>();
+		atomic_size_t curSize;
+
 	public:
 		// Construct a new Linked-List
 		LinkedList() : curSize(0) {}
 
-		// Add element to head
-		// Returns new head
-		Node<T> *add(T val) {
-			Node<T> *newHead = new Node<T>(val);
-			newHead->next = head;
-			head = newHead;
-			curSize++;
-			return head;
-		}
+		// Returns the head. Not thread safe
+		Node<T> *DANGEROUS_getHead() { return head; }
 
-		// Remove an element by value
-		// Returns whether or not the value was successfully removed
-		bool remove(T val) {
-			// If we are empty, exit early
-			if (curSize == 0) return false;
+		// Add new element to the linked list
+		void add(T val) {
+			// Maintain lock on cur node
+			Node<T> *mover = head;
+			mover->lock();
 
-			// If we are removing just the head, do it
-			if (head->val == val) {
-				Node<T> *oldHead = head;
-				head = head->next;
-				delete oldHead;
-				curSize--;
-				return true;
+			// Traverse the list
+			bool isHead = true;
+			while (true) {
+				// If we find it, update
+				if (!isHead && mover->val == val) {
+					mover->val = val;
+					mover->unlock();
+					curSize++;
+					return;
+				}
+
+				// Lock our next node (if it exists)
+				Node<T> *next = mover->getNextAndLock();
+				// Stop if we've reached the end
+				if (next == nullptr)
+					break;
+
+				// Unlock and move
+				mover->unlock();
+				mover = next;
+				isHead = false;
 			}
 
-			// Normal deletion protocol
-			Node<T> *curNode = head;
-			while (curNode->next != nullptr && curNode->next->val != val)
-				curNode = curNode->next;
+			// Insert at end
+			mover->next = new Node<T>(val);
+			mover->unlock();
+			curSize++;
+		}
 
-			if (curNode->next == nullptr) return false;
+		// Remove an element
+		// Returns whether or not the value was successfully removed
+		bool remove(T val) {
+			// Maintain lock on current node
+			Node<T> *mover = head;
+			mover->lock();
 
-			Node<T> *removedNode = curNode->next;
-			curNode->next = curNode->next->next;
-			delete removedNode;
-			curSize--;
-			return true;
+			// Traverse, look for node to remove
+			while (true) {
+				// Get the next node
+				Node<T> *next = mover->getNextAndLock();
+
+				// Break if we're done
+				if (next == nullptr) {
+					mover->unlock();
+					return false;
+				}
+
+				// Found it, remove
+				if (next->val == val) {
+					mover->next = next->next;
+					mover->unlock();
+					next->unlock();
+
+					delete next;
+					curSize--;
+
+					return true;
+				}
+
+				// Unlock and move
+				mover->unlock();
+				mover = next;
+			}
+
+			mover->unlock();
+			return false;
 		}
 
 		// Returns the value if it exists, null otherwise
 		T *get(T val) {
-			// If we are empty, exit early
-			if (curSize == 0) return nullptr;
+			// Empty list
+			if (head->next == nullptr)
+				return nullptr;
+
+			// Maintain lock on current node
+			Node<T> *mover = head->next;
+			mover->lock();
 
 			// Check for existence
-			Node<T> *curNode = head;
-			while (curNode != nullptr && curNode->val != val)
-				curNode = curNode->next;
+			while (true) {
+				if (mover->val == val) {
+					T *ret = &(mover->val);
+					mover->unlock();
+					return ret;
+				}
 
-			return curNode == nullptr ? nullptr : &(curNode->val);
+				// Get next and break if done
+				Node<T> *next = mover->getNextAndLock();
+
+				if (next == nullptr) {
+					mover->unlock();
+					return nullptr;
+				}
+
+				// Move
+				mover->unlock();
+				mover = next;
+			}
 		}
 
 		// Get the current size
