@@ -10,6 +10,7 @@ using std::cout;
 using ll::LinkedList;
 
 int main() {
+	cout << "\n\nLINKED LIST TESTING...\n\n";
 	/*
 	 * SEQUENTIAL TESTING
 	 */
@@ -65,7 +66,7 @@ int main() {
 			assert(threadedList.remove(x));
 	};
 
-	const int THREADS = 4, LIM = 10'000;
+	const int THREADS = 4, LIM = 1'000;
 	cout << "\nBEGINNING THREADED CHECKS\n";
 	cout << "Threads: " << THREADS << "\n";
 	cout << "Elements: " << LIM << "\n";
