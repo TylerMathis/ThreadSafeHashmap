@@ -51,7 +51,7 @@ namespace wfhm {
 
 	private:
 		// Private member variables
-		atomic_uint capacity;
+		uint capacity;
 		F hash;
 		vector<LinkedList<TypedEntry>> hashmap;
 
@@ -68,7 +68,7 @@ namespace wfhm {
 			uint capacity, uint maxWorkerThreads = 4
 		) : capacity(capacity), hashmap(capacity),
 			threadLock(maxWorkerThreads) {}
-		
+
 		// On destruct, wait for all operations to finish
 		~ManagedHashmap() { while (threadLock.active); }
 
