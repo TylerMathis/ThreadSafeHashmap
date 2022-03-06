@@ -2,7 +2,7 @@
 #include <string>
 #include <assert.h>
 #include <functional>
-#include "Hashmap.h"
+#include "../src/Hashmap.h"
 
 using std::cout;
 using std::string;

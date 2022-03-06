@@ -10,7 +10,7 @@ using std::thread;
 using std::vector;
 using std::atomic_uint;
 using std::atomic_int;
-using ll::LinkedList;
+using ll::LockableLinkedList;
 using semaphore::CountingSemaphore;
 
 // Wait-free Hashmap
@@ -53,7 +53,7 @@ namespace wfhm {
 		// Private member variables
 		uint capacity;
 		F hash;
-		vector<LinkedList<TypedEntry>> hashmap;
+		vector<LockableLinkedList<TypedEntry>> hashmap;
 
 		// We will using a counting semaphore to limit our job count
 		CountingSemaphore threadLock;

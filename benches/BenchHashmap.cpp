@@ -1,7 +1,7 @@
 #include <iostream>
 #include <chrono>
 #include <vector>
-#include "Hashmap.h"
+#include "../src/Hashmap.h"
 
 namespace chrono = std::chrono;
 
@@ -60,7 +60,7 @@ int main() {
 		for (int j = 0; j < sz(LIM_TESTS); j++) {
 			printf("%-15d|", LIM_TESTS[j]);
 			for (int k = 0; k < sz(THREAD_TESTS); k++)
-				printf(" %-5ldms|", results[i][j][k]);
+				printf(" %-5lldms|", results[i][j][k]);
 			cout << "\n";
 		}
 		cout << "\n";

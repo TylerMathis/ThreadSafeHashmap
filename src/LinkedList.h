@@ -8,57 +8,57 @@ using std::atomic_size_t;
 
 namespace ll {
 
-	// Simple Linked-List node
-	template<class T>
-	class Node {
-	private:
-		// Lock
-		mutex mtx;
-
-	public:
-		// Member variables
-		Node<T> *next = nullptr;
-		T val;
-
-		// Construct
-		Node() {} // Dummy node for head
-		Node(T val) : val(val) {}
-
-		// Wrappers for thread control
-		void lock() { mtx.lock(); }
-		void unlock() { mtx.unlock(); }
-
-		// Lock the next node and return it
-		Node<T> *getNextAndLock() {
-			if (next == nullptr)
-				return nullptr;
-			next->mtx.lock();
-			return next;
-		}
-	};
-
 	// Linked-List implementation
 	template<class T>
-	class LinkedList {
+	class LockableLinkedList {
+
 	private:
+        // Lockable Linked-List node
+        class LockableNode {
+        private:
+            // Lock
+            mutex mtx;
+
+        public:
+            // Member variables
+            LockableNode *next = nullptr;
+            T val;
+
+            // Construct
+            LockableNode() {} // Dummy node for head
+            LockableNode(T val) : val(val) {}
+
+            // Wrappers for thread control
+            void lock() { mtx.lock(); }
+            void unlock() { mtx.unlock(); }
+
+            // Lock the next node and return it
+            LockableNode *getNextAndLock() {
+                if (next == nullptr)
+                    return nullptr;
+                next->mtx.lock();
+                return next;
+            }
+        };
+
 		// Member variables
-		Node<T> *head = new Node<T>();
+		LockableNode *head = new LockableNode();
 		atomic_size_t curSize;
 
 	public:
 		// Construct a new Linked-List
-		LinkedList() : curSize(0) {}
+		LockableLinkedList() : curSize(0) {}
 
 		// Destructor, free all nodes
-		~LinkedList() {
+		~LockableLinkedList() {
 			// Obtain lock on head
-			Node<T> *mover = head;
+			LockableNode *mover = head;
 			mover->lock();
 
 			// Free everything
 			while (mover != nullptr) {
-				Node<T> *next = mover->getNextAndLock();
-				
+				LockableNode *next = mover->getNextAndLock();
+
 				mover->unlock();
 				delete mover;
 
@@ -67,12 +67,12 @@ namespace ll {
 		}
 
 		// Returns the head. Not thread safe
-		Node<T> *DANGEROUS_getHead() { return head; }
+		LockableNode *DANGEROUS_getHead() { return head; }
 
 		// Add new element to the linked list
 		void add(T val) {
 			// Maintain lock on cur node
-			Node<T> *mover = head;
+			LockableNode *mover = head;
 			mover->lock();
 
 			// Traverse the list
@@ -87,7 +87,7 @@ namespace ll {
 				}
 
 				// Lock our next node (if it exists)
-				Node<T> *next = mover->getNextAndLock();
+				LockableNode *next = mover->getNextAndLock();
 				// Stop if we've reached the end
 				if (next == nullptr)
 					break;
@@ -99,7 +99,7 @@ namespace ll {
 			}
 
 			// Insert at end
-			mover->next = new Node<T>(val);
+			mover->next = new LockableNode(val);
 			mover->unlock();
 			curSize++;
 		}
@@ -108,13 +108,13 @@ namespace ll {
 		// Returns whether or not the value was successfully removed
 		bool remove(T val) {
 			// Maintain lock on current node
-			Node<T> *mover = head;
+			LockableNode *mover = head;
 			mover->lock();
 
 			// Traverse, look for node to remove
 			while (true) {
 				// Get the next node
-				Node<T> *next = mover->getNextAndLock();
+			    LockableNode *next = mover->getNextAndLock();
 
 				// Break if we're done
 				if (next == nullptr) {
@@ -150,7 +150,7 @@ namespace ll {
 				return nullptr;
 
 			// Maintain lock on current node
-			Node<T> *mover = head->next;
+		    LockableNode *mover = head->next;
 			mover->lock();
 
 			// Check for existence
@@ -162,7 +162,7 @@ namespace ll {
 				}
 
 				// Get next and break if done
-				Node<T> *next = mover->getNextAndLock();
+		        LockableNode *next = mover->getNextAndLock();
 
 				if (next == nullptr) {
 					mover->unlock();

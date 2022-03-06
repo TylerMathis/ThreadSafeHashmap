@@ -1,12 +1,15 @@
-test: Test*.cpp
+test: tests/Test*.cpp
 	for file in $^; do \
-		g++ $${file} -O3 -std=c++17 -Wall -pthread -O2 && ./a.out; \
+		g++ $${file} -O3 -std=c++17 -Wall -pthread -o test && ./test; \
+		rm test; \
 	done
 
-bench: Bench*.cpp
+bench: benches/Bench*.cpp
 	for file in $^; do \
-		g++ $${file} -O3 -std=c++17 -Wall -pthread && ./a.out; \
+		g++ $${file} -O3 -std=c++17 -Wall -pthread -o bench && ./bench; \
+		rm bench; \
 	done
 
 clean:
-	rm a.out
+	rm benches/bench;
+	rm tests/test;

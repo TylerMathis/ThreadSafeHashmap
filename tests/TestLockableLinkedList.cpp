@@ -3,11 +3,11 @@
 #include <thread>
 #include <set>
 #include <iostream>
-#include "LinkedList.h"
+#include "../src/LinkedList.h"
 
 using std::vector; using std::thread;
 using std::cout;
-using ll::LinkedList;
+using ll::LockableLinkedList;
 
 int main() {
 	cout << "\n\nLINKED LIST TESTING...\n\n";
@@ -17,7 +17,7 @@ int main() {
 	cout << "\nBEGINNING SEQUENTIAL CHECKS\n";
 	cout << "---------------------------\n";
 	cout << "Testing sequential add...\n";
-	LinkedList<int> sequentialList;
+	LockableLinkedList<int> sequentialList;
 	assert(sequentialList.size() == 0);
 	for (int x = 0; x < 10; x++)
 		sequentialList.add(x);
@@ -45,7 +45,7 @@ int main() {
 	/*
 	 * THREADED TESTING
 	 */
-	LinkedList<int> threadedList;
+	LockableLinkedList<int> threadedList;
 	vector<thread> jobs;
 
 	auto addWorker = [&threadedList](int start, int lim, int inc) {
@@ -80,7 +80,7 @@ int main() {
 
 	cout << "Checking size and connectivity...\n";
 	assert(threadedList.size() == LIM);
-	ll::Node<int> *head = threadedList.DANGEROUS_getHead();
+	auto *head = threadedList.DANGEROUS_getHead();
 	int found = 0;
 	while (head != nullptr)
 		head = head->next, found++;
