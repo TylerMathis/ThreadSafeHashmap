@@ -2,23 +2,23 @@
 #include <chrono>
 #include <vector>
 #include <thread>
-#include "LinkedList.h"
+#include "../src/LinkedList.h"
 
 namespace chrono = std::chrono;
 
 using std::cout;
 using std::vector; using std::thread;
-using ll::LinkedList;
+using ll::LockableLinkedList;
 
 vector<int> LIM_TESTS = {10, 100, 1'000, 10'000, 20'000};
-vector<int> THREAD_TESTS = {2, 4, 6, 8};
+vector<int> THREAD_TESTS = {2, 4};
 
 int main() {
 	for (int LIM : LIM_TESTS) {
 		/*
 		 * SEQUENTIAL BENCHING
 		 */
-		LinkedList<int> sequential;
+		LockableLinkedList<int> sequential;
 
 		cout << "\nRunning benchmarks on LinkedList with " << LIM << " insertions...\n";
 
@@ -34,7 +34,7 @@ int main() {
 			/*
 			 * PARALLEL BENCHING
 			 */
-			LinkedList<int> parallel;
+			LockableLinkedList<int> parallel;
 
 			auto addJob = [&parallel](int start, int lim, int threads) {
 				for (int x = start; x < lim; x += threads)
