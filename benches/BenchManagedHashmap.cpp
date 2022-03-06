@@ -5,7 +5,7 @@
 
 namespace chrono = std::chrono;
 
-using std::cout; using std::endl;
+using std::cout;
 using std::vector;
 using wfhm::ManagedHashmap;
 

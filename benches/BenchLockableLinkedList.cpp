@@ -14,7 +14,7 @@ vector<int> LIM_TESTS = {10, 100, 1'000, 10'000, 20'000};
 vector<int> THREAD_TESTS = {2, 4};
 
 int main() {
-    cout << "\n\nBENCHING LINKED LIST\n\n";
+    cout << "\n\nBENCHING LOCKABLE LINKED LIST\n\n";
 
 	for (int LIM : LIM_TESTS) {
 		/*
@@ -22,7 +22,7 @@ int main() {
 		 */
 		LockableLinkedList<int> sequential;
 
-		cout << "\nRunning benchmarks on LinkedList with " << LIM << " insertions...\n";
+		cout << LIM << " insertions...\n";
 
 		auto startTime = chrono::system_clock::now();
 		for (int x = 0; x < LIM; x++)
