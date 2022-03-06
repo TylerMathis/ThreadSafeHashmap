@@ -58,7 +58,7 @@ namespace wfhm {
     public:
         // Construct hashmap
         // Use a prime capcacity
-        Hashmap(uint capacity, uint maxWorkerThreads = 4) : capacity(capacity), hashmap(capacity) {}
+        Hashmap(uint capacity) : capacity(capacity), hashmap(capacity) {}
 
         // Associate specified key with specified value
         void put(const K key, const V value) {
