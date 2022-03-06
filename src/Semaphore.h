@@ -14,12 +14,12 @@ namespace semaphore {
 	private:
 		mutex mtx;
 		condition_variable cnd;
-		atomic_uint count = 0;
+		atomic_uint count;
 	public:
-		atomic_uint active = 0;
+		atomic_uint active;
 
 		CountingSemaphore(unsigned count = 0) :
-			count(count) {}
+			count(count), active(0) {}
 
 		void acquire() {
 			unique_lock<decltype(mtx)> lock(mtx);

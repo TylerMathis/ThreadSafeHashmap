@@ -24,9 +24,9 @@ int main() {
 	vector<int> randoms(LIM_TESTS.back());
 	for (int &x : randoms) x = rand();
 
-	vector<vector<vector<int64_t>>> results(
-		sz(CAPACITY_TESTS), vector<vector<int64_t>>(
-			sz(LIM_TESTS), vector<int64_t>(
+	vector<vector<vector<long long>>> results(
+		sz(CAPACITY_TESTS), vector<vector<long long>>(
+			sz(LIM_TESTS), vector<long long>(
 				sz(THREAD_TESTS), 0
 	)));
 
