@@ -36,6 +36,50 @@ namespace wfhm {
 		}
 	};
 
+    /* Hashmap where we do *not* manage threads for the user
+     *
+     * Operations are sequentially consistent, but behavior
+     * between close gets and sets is not defined
+     */
+    template<class K, class V, class F = hash<K>>
+    class Hashmap {
+        // Less typing later
+        typedef Entry<K, V> TypedEntry;
+
+    private:
+        // Private member variables
+        uint capacity;
+        F hash;
+        vector<LockableLinkedList<TypedEntry>> hashmap;
+
+        // Wrapper method to extract index from key
+        size_t getHashedIndex(K key) { return hash(key) % capacity; }
+
+    public:
+        // Construct hashmap
+        // Use a prime capcacity
+        Hashmap(uint capacity) : capacity(capacity), hashmap(capacity) {}
+
+        // Nothing really interesting about the destructor
+        ~Hashmap() {}
+
+        // Associate specified key with specified value
+        void put(const K key, const V value) {
+            size_t index = getHashedIndex(key);
+            hashmap[index].add(TypedEntry(key, value));
+        }
+
+        // Get a pointer to the value in the map
+        V *get(const K key) {
+			// Get item
+			size_t index = getHashedIndex(key);
+			auto entry = hashmap[index].get(TypedEntry(key));
+
+			// Return if it exists
+			return entry == nullptr ? nullptr : &(entry->value);
+        }
+    };
+
 	/* Hashmap with managed threads
 	 *
 	 * We will allow the user to queue up
@@ -63,7 +107,7 @@ namespace wfhm {
 
 	public:
 		// Construct a new managed hashmap
-		// Use a prime capacity for best hashing
+		// Use a prime capacity
 		ManagedHashmap(
 			uint capacity, uint maxWorkerThreads = 4
 		) : capacity(capacity), hashmap(capacity),

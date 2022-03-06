@@ -14,6 +14,8 @@ vector<int> LIM_TESTS = {10, 100, 1'000, 10'000, 20'000};
 vector<int> THREAD_TESTS = {2, 4};
 
 int main() {
+    cout << "\n\nBENCHING LINKED LIST\n\n";
+
 	for (int LIM : LIM_TESTS) {
 		/*
 		 * SEQUENTIAL BENCHING

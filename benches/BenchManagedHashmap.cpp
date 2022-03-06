@@ -1,23 +1,22 @@
 #include <iostream>
 #include <chrono>
 #include <vector>
-#include <thread>
 #include "../src/Hashmap.h"
 
 namespace chrono = std::chrono;
 
 using std::cout; using std::endl;
 using std::vector;
-using wfhm::Hashmap;
+using wfhm::ManagedHashmap;
 
 #define sz(x) (int)(x).size()
 
 vector<int> CAPACITY_TESTS = {8'675'309, 31'013};
-vector<int> LIM_TESTS = {10'000, 100'000, 1'000'000};
-vector<int> THREAD_TESTS = {1, 2, 4, 8};
+vector<int> LIM_TESTS = {10'000, 100'000};
+vector<int> THREAD_TESTS = {1, 2, 4};
 
 int main() {
-    cout << "\n\nBENCHING HASHMAP\n\n";
+    cout << "\n\nBENCHING MANAGED HASHMAP\n\n";
 
 	// Get random numbers for use later
 	srand(time(NULL));
@@ -37,24 +36,11 @@ int main() {
 				int LIM = LIM_TESTS[j];
 				int THREADS = THREAD_TESTS[k];
 
-				Hashmap<int, int> map(CAPACITY);
-
-                auto putJob = [&](int start, int end) {
-                    for (int i = start; i <= end; i++)
-                        map.put(randoms[i], i);
-                };
-
-
-                int gap = LIM / THREADS;
-                vector<thread> threads;
+				ManagedHashmap<int, int> map(CAPACITY, THREADS);
 
 				auto startTime = chrono::system_clock::now();
-
-                for (int thread = 0; thread < THREADS; thread++)
-                    threads.emplace_back(putJob, thread * gap, thread * gap + gap);
-                for (thread &t : threads)
-                    t.join();
-
+				for (int x = 0; x < LIM; x++)
+					map.put(randoms[x], x);
 				auto endTime = chrono::system_clock::now();
 
 				auto totalTime = chrono::duration_cast<chrono::milliseconds>(endTime - startTime).count();
