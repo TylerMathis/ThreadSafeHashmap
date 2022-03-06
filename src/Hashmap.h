@@ -60,6 +60,9 @@ namespace wfhm {
         // Use a prime capcacity
         Hashmap(uint capacity) : capacity(capacity), hashmap(capacity) {}
 
+        // Nothing really interesting about the destructor
+        ~Hashmap() {}
+
         // Associate specified key with specified value
         void put(const K key, const V value) {
             size_t index = getHashedIndex(key);
