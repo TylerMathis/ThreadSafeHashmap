@@ -2,13 +2,149 @@
 #include <cstddef>
 #include <mutex>
 #include <atomic>
+#include <vector>
+#include <limits>
+#include "MarkableReference.h"
 
 using std::mutex;
 using std::atomic_size_t;
+using std::uintptr_t;
+using std::hash;
 
 namespace ll {
 
-	// Linked-List implementation
+    // Lock Free Linked-List implementation
+    // Inspired by The Art of Multiprocessor Programming
+    // Chapter 9.8
+    template<class T, class F = hash<T>>
+    class LockFreeLinkedList {
+
+    private:
+        // Regular Linked-List node
+        class Node {
+
+        public:
+            MarkableReference<Node> next;
+            T val;
+            int key;
+
+            // Construct
+            Node() {} // Dummy node for head
+            Node(T val, int key) : val(val), key(key) {}
+        };
+
+        // Less typing later
+        typedef MarkableReference<Node> MNode;
+
+        // Holds a pair of pointers
+        class Window {
+            public:
+                MNode pred, curr;
+                Window(MNode pred, MNode curr)
+                    : pred(pred), curr(curr) {}
+        };
+
+        // Member variables
+        F hash;
+        MNode head;
+
+    public:
+        // Constructor
+        LockFreeLinkedList() {
+            // Make a head and tail with min and max values for easy inserting
+            head = MNode(new Node(T{}, INT_MIN));
+            head.getRef()->next = MNode(new Node(T{}, INT_MAX));
+        }
+
+        // Find a desired window, fixing logically deleted nodes along the way
+        Window find(MNode head, int key) {
+            MNode pred, curr, succ;
+
+            bool marked;
+            bool snip;
+            retry: while (true) {
+                pred = head;
+                curr = pred.getRef()->next.getRef();
+                while (true) {
+                    succ = curr.getRef()->next.getBoth(marked);
+                    while (marked) {
+                        snip = pred.getRef()->next.compareExchangeBothWeak(curr.getRef(), succ.getRef(), false, false);
+
+                        if (!snip) goto retry;
+
+                        curr = succ;
+                        succ = curr.getRef()->next.getBoth(marked);
+                    }
+                    if (curr.getRef()->key >= key)
+                        return Window(pred, curr);
+                    pred = curr;
+                    curr = succ;
+                }
+            }
+        }
+
+        bool add(T item) {
+            int key = hash(item);
+            while (true) {
+                Window window = find(head, key);
+                MNode pred = window.pred, curr = window.curr;
+                if (curr.getRef()->key == key) return false;
+
+                MNode node(new Node(item, key));
+                node.getRef()->next = MNode(curr);
+                if (pred.getRef()->next.compareExchangeBothWeak(
+                    curr.getRef(),
+                    node.getRef(),
+                    false,
+                    false
+                )) return true;
+            }
+        }
+
+        bool remove(T item) {
+            int key = hash(item);
+            bool snip = false;
+            while (true) {
+                Window window = find(head, key);
+                MNode pred = window.pred, curr = window.curr;
+                if (curr.getRef()->key != key) return false;
+
+                MNode succ = curr.getRef()->next.getRef();
+                snip = curr.getRef()->next.compareExchangeBothWeak(
+                    succ.getRef(),
+                    succ.getRef(),
+                    false,
+                    true
+                );
+
+                if (!snip) continue;
+
+                pred.getRef()->next.compareExchangeBothWeak(
+                    curr.getRef(),
+                    succ.getRef(),
+                    false,
+                    false
+                );
+
+                return true;
+            }
+        }
+
+        bool contains(T item) {
+            bool marked = false;
+            int key = hash(item);
+            MNode curr = head;
+
+            while (curr.getRef()->key < key) {
+                curr = curr.getRef()->next.getRef();
+                MNode succ = curr.getRef()->next.getBoth(marked);
+            }
+
+            return (curr.getRef()->key == key && !marked);
+        }
+    };
+
+	// Lockable Linked-List implementation
 	template<class T>
 	class LockableLinkedList {
 
@@ -20,7 +156,6 @@ namespace ll {
             mutex mtx;
 
         public:
-            // Member variables
             LockableNode *next = nullptr;
             T val;
 
@@ -41,7 +176,6 @@ namespace ll {
             }
         };
 
-		// Member variables
 		LockableNode *head = new LockableNode();
 		atomic_size_t curSize;
 
