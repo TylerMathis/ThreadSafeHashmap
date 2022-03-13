@@ -7,24 +7,24 @@
 
 using std::vector; using std::thread;
 using std::cout;
-using ll::LockableLinkedList;
+using ll::LockFreeLinkedList;
 
 int main() {
-	cout << "\n\nTESTING LOCKABLE LINKED LIST...\n\n";
+	cout << "\n\nTESTING LOCK FREE LINKED LIST...\n\n";
 	/*
 	 * SEQUENTIAL TESTING
 	 */
 	cout << "\nBEGINNING SEQUENTIAL CHECKS\n";
 	cout << "---------------------------\n";
 	cout << "Testing sequential add...\n";
-	LockableLinkedList<int> sequentialList;
+	LockFreeLinkedList<int> sequentialList;
 	assert(sequentialList.size() == 0);
 	for (int x = 0; x < 10; x++)
 		sequentialList.add(x);
 	assert(sequentialList.size() == 10);
 	for (int x = 0; x < 10; x++) {
-		auto found = sequentialList.get(x);
-		assert(found != nullptr && *found == x);
+        int search = x;
+		assert(sequentialList.contains(search) && search == x);
 	}
 
 	cout << "Testing sequential remove...\n";
@@ -32,9 +32,10 @@ int main() {
 		assert(sequentialList.remove(x));
 	assert(sequentialList.size() == 5);
 	for (int x = 0; x < 10; x++) {
-		auto found = sequentialList.get(x);
-		if (x & 1) assert(found != nullptr && *found == x);
-		else assert(found == nullptr);
+        int search = x;
+		bool found = sequentialList.contains(search);
+		if (x & 1) assert(found && search == x);
+		else assert(!found);
 	}
 
 	cout << "Testing sequential remove full...\n";
@@ -45,7 +46,7 @@ int main() {
 	/*
 	 * THREADED TESTING
 	 */
-	LockableLinkedList<int> threadedList;
+	LockFreeLinkedList<int> threadedList;
 	vector<thread> jobs;
 
 	auto addWorker = [&threadedList](int start, int lim, int inc) {
@@ -55,9 +56,10 @@ int main() {
 
 	auto checkWorker = [&threadedList](int start, int lim, int inc, bool exists) {
 		for (int x = start; x < lim; x += inc) {
-			auto found = threadedList.get(x);
-			if (exists) assert(found != nullptr && *found == x);
-			else assert(found == nullptr);
+            int search = x;
+			bool found = threadedList.contains(search);
+			if (exists) assert(found && search == x);
+			else assert(!found);
 		}
 	};
 
@@ -80,11 +82,12 @@ int main() {
 
 	cout << "Checking size and connectivity...\n";
 	assert(threadedList.size() == LIM);
-	auto *head = threadedList.DANGEROUS_getHead();
+	auto head = threadedList.DANGEROUS_getHead();
 	int found = 0;
-	while (head != nullptr)
-		head = head->next, found++;
-	assert(found == LIM + 1);
+	while (head.getRef() != nullptr)
+		head = head.getRef()->next, found++;
+    // INT_MIN and MAX at back and front
+	assert(found == LIM + 2);
 
 	cout << "Checking threaded containment...\n";
 	for (int thread = 0; thread < THREADS; thread++)
@@ -108,6 +111,7 @@ int main() {
 	jobs.clear();
 
 	cout << "\nSuccess :D\n";
+
 	return 0;
 }
 

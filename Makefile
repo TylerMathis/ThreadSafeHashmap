@@ -12,8 +12,16 @@ test_lockable_linked_list: tests/TestLockableLinkedList.cpp
 	g++ tests/TestLockableLinkedList.cpp -O3 -std=c++17 -Wall -pthread -o test && ./test;
 	rm test;
 
+test_lock_free_linked_list: tests/TestLockFreeLinkedList.cpp
+	g++ tests/TestLockFreeLinkedList.cpp -O3 -std=c++17 -Wall -pthread -o test && ./test;
+	rm test;
+
 test_managed_hashmap: tests/TestManagedHashmap.cpp
 	g++ tests/TestManagedHashmap.cpp -O3 -std=c++17 -Wall -pthread -o test && ./test;
+	rm test;
+
+test_markable_reference: tests/TestMarkableReference.cpp
+	g++ tests/TestMarkableReference.cpp -O3 -std=c++17 -Wall -pthread -o test && ./test;
 	rm test;
 
 bench: benches/Bench*.cpp
@@ -43,3 +51,4 @@ bench_stl_hashmap: benches/BenchStlHashmap.cpp
 clean:
 	rm benches/bench;
 	rm tests/test;
+	rm a.out;

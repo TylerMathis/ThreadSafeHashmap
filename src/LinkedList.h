@@ -3,7 +3,7 @@
 #include <mutex>
 #include <atomic>
 #include <vector>
-#include <limits>
+#include <climits>
 #include "MarkableReference.h"
 
 using std::mutex;
@@ -44,104 +44,193 @@ namespace ll {
                     : pred(pred), curr(curr) {}
         };
 
-        // Member variables
-        F hash;
+        // Member vars
         MNode head;
+        F hash;
+		atomic_size_t curSize;
 
     public:
         // Constructor
-        LockFreeLinkedList() {
+        LockFreeLinkedList() : head(new Node(T{}, INT_MIN)), curSize(0) {
             // Make a head and tail with min and max values for easy inserting
-            head = MNode(new Node(T{}, INT_MIN));
             head.getRef()->next = MNode(new Node(T{}, INT_MAX));
         }
+
+		// Destructor, free all nodes
+		~LockFreeLinkedList() {
+            MNode curr = head;
+            while (curr.getRef() != nullptr) {
+                MNode next = curr.getRef()->next;
+                delete curr.getRef();
+                curr = next;
+            }
+		}
+
+		// Returns the head. Not thread safe
+		MNode DANGEROUS_getHead() { return head; }
 
         // Find a desired window, fixing logically deleted nodes along the way
         Window find(MNode head, int key) {
             MNode pred, curr, succ;
 
-            bool marked;
-            bool snip;
+            // Traverse from beginning of list
             retry: while (true) {
+                // Guaranteed to exist, at least two nodes in list
                 pred = head;
-                curr = pred.getRef()->next.getRef();
+                curr = pred.getRef()->next;
+
                 while (true) {
-                    succ = curr.getRef()->next.getBoth(marked);
-                    while (marked) {
-                        snip = pred.getRef()->next.compareExchangeBothWeak(curr.getRef(), succ.getRef(), false, false);
+                    // Move forwards, and delete if necessary
+                    succ = curr.getRef()->next;
+
+                    // Might not exist yet, if it does check it's mark
+                    while (succ.getMark()) {
+
+                        // Try to physically delete the logically deleted node
+                        Node *expectedRef = curr.getRef();
+                        bool expectedMark = false;
+                        Node *requiredRef = succ.getRef();
+                        bool requiredMark = false;
+                        bool snip = pred.getRef()->next.compareExchangeBothWeak(
+                            expectedRef,
+                            expectedMark,
+                            requiredRef,
+                            requiredMark
+                        );
 
                         if (!snip) goto retry;
 
-                        curr = succ;
-                        succ = curr.getRef()->next.getBoth(marked);
+                        Node *toDelete = curr.getRef();
+
+                        curr = curr.getRef()->next;
+                        succ = succ.getRef()->next;
+
+                        // Delete the old node
+                        delete toDelete;
                     }
+
                     if (curr.getRef()->key >= key)
                         return Window(pred, curr);
+
                     pred = curr;
                     curr = succ;
                 }
             }
         }
 
+        // Add new item to list
         bool add(T item) {
             int key = hash(item);
+            Node *toBeAdded = new Node(item, key);
+
             while (true) {
+                // Find the node
                 Window window = find(head, key);
                 MNode pred = window.pred, curr = window.curr;
+
+                // If it already exists, exit
                 if (curr.getRef()->key == key) return false;
 
-                MNode node(new Node(item, key));
-                node.getRef()->next = MNode(curr);
+                // Attempt to link new node it in with CAS
+                MNode node = MNode(toBeAdded);
+                node.getRef()->next = curr;
+
+                Node *expectedRef = curr.getRef();
+                bool expectedMark = false;
+                Node *requiredRef = node.getRef();
+                bool requiredMark = false;
+
                 if (pred.getRef()->next.compareExchangeBothWeak(
-                    curr.getRef(),
-                    node.getRef(),
-                    false,
-                    false
-                )) return true;
+                    expectedRef,
+                    expectedMark,
+                    requiredRef,
+                    requiredMark
+                )) {
+                    curSize++;
+                    return true;
+                }
             }
         }
 
+        // Remove item from list
         bool remove(T item) {
             int key = hash(item);
+
             bool snip = false;
             while (true) {
+                // Find the item
                 Window window = find(head, key);
-                MNode pred = window.pred, curr = window.curr;
+                // MNode *pred = window.pred;
+                MNode curr = window.curr;
+
+                // If we didn't find it, stop
                 if (curr.getRef()->key != key) return false;
 
-                MNode succ = curr.getRef()->next.getRef();
+                // Attempt to logically delete the node
+                MNode succ = curr.getRef()->next;
+
+                Node *expectedRef = succ.getRef();
+                bool expectedMark = false;
+                Node *requiredRef = succ.getRef();
+                bool requiredMark = true;
+
                 snip = curr.getRef()->next.compareExchangeBothWeak(
-                    succ.getRef(),
-                    succ.getRef(),
-                    false,
-                    true
+                    expectedRef,
+                    expectedMark,
+                    requiredRef,
+                    requiredMark
                 );
 
                 if (!snip) continue;
 
-                pred.getRef()->next.compareExchangeBothWeak(
-                    curr.getRef(),
-                    succ.getRef(),
-                    false,
-                    false
-                );
+                // TODO: MAKE THIS WORK!
+                //
+                // For some reason I don't understand,
+                // we cannot physically delete these yet
+                // They're reference seems to be used later
+                //
+                //
 
+                // On logical deletion success, attempt a physical deletion
+                // expectedRef = curr->getRef();
+                // expectedMark = false;
+                // requiredRef = succ->getRef();
+                // requiredMark = false;
+
+                // Attempt physcial deletion
+                // snip = pred->getRef()->next->compareExchangeBothWeak(
+                    // expectedRef,
+                    // expectedMark,
+                    // requiredRef,
+                    // requiredMark
+                // );
+
+                // If physical was successful, free the mem
+                // if (snip) delete expectedRef;
+
+                curSize--;
                 return true;
             }
         }
 
-        bool contains(T item) {
-            bool marked = false;
+        // Returns true if the item is in the list. Stores found item in
+        // argument
+        bool contains(T &item) {
             int key = hash(item);
             MNode curr = head;
 
-            while (curr.getRef()->key < key) {
-                curr = curr.getRef()->next.getRef();
-                MNode succ = curr.getRef()->next.getBoth(marked);
-            }
+            while (curr.getRef()->key < key)
+                curr = curr.getRef()->next;
+            bool marked = curr.getRef()->next.getMark();
 
-            return (curr.getRef()->key == key && !marked);
+            if (curr.getRef()->key == key && !marked) {
+                item = curr.getRef()->val;
+                return true;
+            } return false;
         }
+
+		// Get the current size
+		size_t size() { return curSize; }
     };
 
 	// Lockable Linked-List implementation

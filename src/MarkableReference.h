@@ -33,7 +33,7 @@ public:
     ) : val(other.val.load(order)) {}
 
     // Override the = operator to do atomic sets
-    MarkableReference &operator=(MarkableReference &other) {
+    MarkableReference &operator=(const MarkableReference &other) {
         val.store(
             other.val.load(std::memory_order_relaxed),
             std::memory_order_relaxed
