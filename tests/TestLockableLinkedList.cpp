@@ -12,7 +12,7 @@ using std::cout;
 using ll::LockableLinkedList;
 
 int main() {
-	cout << "\n\nLINKED LIST TESTING...\n\n";
+	cout << "\n\nLOCKABLE LINKED LIST TESTING...\n\n";
 	/*
 	 * SEQUENTIAL TESTING
 	 */
