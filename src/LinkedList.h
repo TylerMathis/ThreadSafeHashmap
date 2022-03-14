@@ -5,9 +5,9 @@
 
 namespace ll {
 
-	// Linked-List implementation
+	// Hand over hand locked linked list
 	template<class T>
-	class LockableLinkedList {
+	class LockableLL {
 
 	private:
         // Lockable Linked-List node
@@ -44,10 +44,10 @@ namespace ll {
 
 	public:
 		// Construct a new Linked-List
-		LockableLinkedList() : curSize(0) {}
+		LockableLL() : curSize(0) {}
 
 		// Destructor, free all nodes
-		~LockableLinkedList() {
+		~LockableLL() {
 			// Obtain lock on head
 			LockableNode *mover = head;
 			mover->lock();

@@ -10,7 +10,7 @@ using std::cout;
 using std::vector;
 using std::thread;
 
-using wfhm::Hashmap;
+using tshm::Hashmap;
 
 #define sz(x) (int)(x).size()
 

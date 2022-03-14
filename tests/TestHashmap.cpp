@@ -13,7 +13,7 @@ using std::set;
 using std::vector;
 using std::thread;
 
-using wfhm::Hashmap;
+using tshm::Hashmap;
 
 const int LARGE_PRIME = 8675309;
 

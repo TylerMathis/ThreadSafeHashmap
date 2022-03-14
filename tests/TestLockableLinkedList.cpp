@@ -9,7 +9,7 @@ using std::vector;
 using std::thread;
 using std::cout;
 
-using ll::LockableLinkedList;
+using ll::LockableLL;
 
 int main() {
 	cout << "\n\nLOCKABLE LINKED LIST TESTING...\n\n";
@@ -19,7 +19,7 @@ int main() {
 	cout << "\nBEGINNING SEQUENTIAL CHECKS\n";
 	cout << "---------------------------\n";
 	cout << "Testing sequential add...\n";
-	LockableLinkedList<int> sequentialList;
+	LockableLL<int> sequentialList;
 	assert(sequentialList.size() == 0);
 	for (int x = 0; x < 10; x++)
 		sequentialList.add(x);
@@ -47,7 +47,7 @@ int main() {
 	/*
 	 * THREADED TESTING
 	 */
-	LockableLinkedList<int> threadedList;
+	LockableLL<int> threadedList;
 	vector<thread> jobs;
 
 	auto addWorker = [&threadedList](int start, int lim, int inc) {

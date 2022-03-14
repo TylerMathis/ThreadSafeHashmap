@@ -7,7 +7,7 @@ namespace chrono = std::chrono;
 
 using std::cout;
 using std::vector;
-using wfhm::ManagedHashmap;
+using tshm::ManagedHashmap;
 
 #define sz(x) (int)(x).size()
 

@@ -5,8 +5,8 @@
 #include "Semaphore.h"
 #include "LinkedList.h"
 
-// Wait-free Hashmap
-namespace wfhm {
+// Thread safe hashmap
+namespace tshm {
 
 	// Entry in the hashmap
 	template<class K, class V>
@@ -23,9 +23,7 @@ namespace wfhm {
 		 * This also interfaces nicely with the underlying data structure
 		 * as we can easy replace items on equality
 		 */
-		bool operator==(const Entry &a) const {
-			return key == a.key;
-		}
+		bool operator==(const Entry &a) const { return key == a.key; }
 	};
 
     /* Hashmap where we do *not* manage threads for the user
@@ -42,7 +40,7 @@ namespace wfhm {
         // Private member variables
         uint capacity;
         F hash;
-        std::vector<ll::LockableLinkedList<TypedEntry>> hashmap;
+        std::vector<ll::LockableLL<TypedEntry>> hashmap;
 
         // Wrapper method to extract index from key
         size_t getHashedIndex(K key) { return hash(key) % capacity; }
@@ -89,7 +87,7 @@ namespace wfhm {
 		// Private member variables
 		uint capacity;
 		F hash;
-        std::vector<ll::LockableLinkedList<TypedEntry>> hashmap;
+        std::vector<ll::LockableLL<TypedEntry>> hashmap;
 
 		// We will using a counting semaphore to limit our job count
         semaphore::CountingSemaphore threadLock;

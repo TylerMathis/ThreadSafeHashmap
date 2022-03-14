@@ -7,7 +7,7 @@
 using std::cout;
 using std::string;
 
-using wfhm::ManagedHashmap;
+using tshm::ManagedHashmap;
 
 const int LARGE_PRIME = 8675309;
 

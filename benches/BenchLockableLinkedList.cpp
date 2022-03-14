@@ -10,7 +10,7 @@ using std::cout;
 using std::vector;
 using std::thread;
 
-using ll::LockableLinkedList;
+using ll::LockableLL;
 
 vector<int> LIM_TESTS = {10, 100, 1'000, 10'000, 20'000};
 vector<int> THREAD_TESTS = {2, 4};
@@ -22,7 +22,7 @@ int main() {
 		/*
 		 * SEQUENTIAL BENCHING
 		 */
-		LockableLinkedList<int> sequential;
+		LockableLL<int> sequential;
 
 		cout << LIM << " insertions...\n";
 
@@ -38,7 +38,7 @@ int main() {
 			/*
 			 * PARALLEL BENCHING
 			 */
-			LockableLinkedList<int> parallel;
+			LockableLL<int> parallel;
 
 			auto addJob = [&parallel](int start, int lim, int threads) {
 				for (int x = start; x < lim; x += threads)
