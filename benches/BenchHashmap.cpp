@@ -8,6 +8,8 @@ namespace chrono = std::chrono;
 
 using std::cout;
 using std::vector;
+using std::thread;
+
 using wfhm::Hashmap;
 
 #define sz(x) (int)(x).size()

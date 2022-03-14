@@ -7,7 +7,9 @@
 namespace chrono = std::chrono;
 
 using std::cout;
-using std::vector; using std::thread;
+using std::vector;
+using std::thread;
+
 using ll::LockableLinkedList;
 
 vector<int> LIM_TESTS = {10, 100, 1'000, 10'000, 20'000};

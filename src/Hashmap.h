@@ -5,14 +5,6 @@
 #include "Semaphore.h"
 #include "LinkedList.h"
 
-using std::hash;
-using std::thread;
-using std::vector;
-using std::atomic_uint;
-using std::atomic_int;
-using ll::LockableLinkedList;
-using semaphore::CountingSemaphore;
-
 // Wait-free Hashmap
 namespace wfhm {
 
@@ -41,7 +33,7 @@ namespace wfhm {
      * Operations are sequentially consistent, but behavior
      * between close gets and sets is not defined
      */
-    template<class K, class V, class F = hash<K>>
+    template<class K, class V, class F = std::hash<K>>
     class Hashmap {
         // Less typing later
         typedef Entry<K, V> TypedEntry;
@@ -50,7 +42,7 @@ namespace wfhm {
         // Private member variables
         uint capacity;
         F hash;
-        vector<LockableLinkedList<TypedEntry>> hashmap;
+        std::vector<ll::LockableLinkedList<TypedEntry>> hashmap;
 
         // Wrapper method to extract index from key
         size_t getHashedIndex(K key) { return hash(key) % capacity; }
@@ -88,7 +80,7 @@ namespace wfhm {
 	 * context fully finish execution.
 	 */
 	// types<Key, Value, HashFunction>
-	template<class K, class V, class F = hash<K>>
+	template<class K, class V, class F = std::hash<K>>
 	class ManagedHashmap {
 		// Less typing later
 		typedef Entry<K, V> TypedEntry;
@@ -97,10 +89,10 @@ namespace wfhm {
 		// Private member variables
 		uint capacity;
 		F hash;
-		vector<LockableLinkedList<TypedEntry>> hashmap;
+        std::vector<ll::LockableLinkedList<TypedEntry>> hashmap;
 
 		// We will using a counting semaphore to limit our job count
-		CountingSemaphore threadLock;
+        semaphore::CountingSemaphore threadLock;
 
 		// Wrapper method to extract index from key
 		size_t getHashedIndex(K key) { return hash(key) % capacity; }
@@ -122,7 +114,7 @@ namespace wfhm {
 			threadLock.acquire();
 
 			// Spawn new thread
-			thread t([&] (TypedEntry entry) {
+            std::thread t([&] (TypedEntry entry) {
 				size_t index = getHashedIndex(entry.key);
 				hashmap[index].add(entry);
 				threadLock.release();

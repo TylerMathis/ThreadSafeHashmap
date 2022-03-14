@@ -16,6 +16,8 @@ test_managed_hashmap: tests/TestManagedHashmap.cpp
 	g++ tests/TestManagedHashmap.cpp -O3 -std=c++17 -Wall -pthread -o test && ./test;
 	rm test;
 
+
+
 bench: benches/Bench*.cpp
 	for file in $^; do \
 		g++ $${file} -O0 -std=c++17 -Wall -pthread -o bench && ./bench; \
@@ -41,5 +43,6 @@ bench_stl_hashmap: benches/BenchStlHashmap.cpp
 
 
 clean:
+	rm a.out;
 	rm benches/bench;
 	rm tests/test;

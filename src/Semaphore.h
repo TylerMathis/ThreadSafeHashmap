@@ -3,26 +3,20 @@
 #include <condition_variable>
 #include <atomic>
 
-using std::mutex;
-using std::unique_lock;
-using std::lock_guard;
-using std::condition_variable;
-using std::atomic_uint;
-
 namespace semaphore {
 	class CountingSemaphore {
 	private:
-		mutex mtx;
-		condition_variable cnd;
-		atomic_uint count;
+        std::mutex mtx;
+        std::condition_variable cnd;
+        std::atomic_uint count;
 	public:
-		atomic_uint active;
+        std::atomic_uint active;
 
 		CountingSemaphore(unsigned count = 0) :
 			count(count), active(0) {}
 
 		void acquire() {
-			unique_lock<decltype(mtx)> lock(mtx);
+            std::unique_lock<decltype(mtx)> lock(mtx);
 			while (!count)
 				cnd.wait(lock);
 			--count;
@@ -30,7 +24,7 @@ namespace semaphore {
 		}
 
 		void release() {
-			lock_guard<decltype(mtx)> lock(mtx);
+            std::lock_guard<decltype(mtx)> lock(mtx);
 			++count;
 			--active;
 			cnd.notify_one();

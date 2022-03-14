@@ -5,8 +5,10 @@
 #include <iostream>
 #include "../src/LinkedList.h"
 
-using std::vector; using std::thread;
+using std::vector;
+using std::thread;
 using std::cout;
+
 using ll::LockableLinkedList;
 
 int main() {

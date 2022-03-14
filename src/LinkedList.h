@@ -3,9 +3,6 @@
 #include <mutex>
 #include <atomic>
 
-using std::mutex;
-using std::atomic_size_t;
-
 namespace ll {
 
 	// Linked-List implementation
@@ -17,7 +14,7 @@ namespace ll {
         class LockableNode {
         private:
             // Lock
-            mutex mtx;
+            std::mutex mtx;
 
         public:
             // Member variables
@@ -43,7 +40,7 @@ namespace ll {
 
 		// Member variables
 		LockableNode *head = new LockableNode();
-		atomic_size_t curSize;
+        std::atomic_size_t curSize;
 
 	public:
 		// Construct a new Linked-List
