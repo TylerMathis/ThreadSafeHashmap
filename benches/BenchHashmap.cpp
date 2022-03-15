@@ -11,6 +11,7 @@ using std::vector;
 using std::thread;
 
 using tshm::Hashmap;
+using ll::AddOnlyLockFreeLL;
 
 #define sz(x) (int)(x).size()
 
@@ -39,7 +40,7 @@ int main() {
 				int LIM = LIM_TESTS[j];
 				int THREADS = THREAD_TESTS[k];
 
-				Hashmap<int, int> map(CAPACITY);
+				Hashmap<int, int, AddOnlyLockFreeLL> map(CAPACITY);
 
                 auto putJob = [&](int start, int end) {
                     for (int i = start; i <= end; i++)

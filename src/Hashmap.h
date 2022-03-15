@@ -39,7 +39,11 @@ namespace tshm {
      * Operations are sequentially consistent, but behavior
      * between close gets and sets is not defined
      */
-    template<class K, class V, class F = std::hash<K>>
+    template<
+        class K,
+        class V,
+        template<class> class Container = ll::LockableLL,
+        class F = std::hash<K>>
     class Hashmap : IHashmap<K, V> {
         // Less typing later
         typedef Entry<K, V> TypedEntry;
@@ -48,7 +52,7 @@ namespace tshm {
         // Private member variables
         uint capacity;
         F hash;
-        std::vector<ll::LockableLL<TypedEntry>> hashmap;
+        std::vector<Container<TypedEntry>> hashmap;
 
         // Wrapper method to extract index from key
         size_t getHashedIndex(const K &key) const {
