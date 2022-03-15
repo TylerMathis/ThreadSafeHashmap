@@ -14,7 +14,6 @@ using std::vector;
 using std::thread;
 
 using tshm::Hashmap;
-using ll::AddOnlyLockFreeLL;
 
 const int LARGE_PRIME = 8675309;
 
@@ -22,7 +21,7 @@ int main() {
 	cout << "\n\nHASHMAP TESTING...\n\n";
 
 	cout << "Testing single value...\n";
-	Hashmap<string, int, AddOnlyLockFreeLL> hashmap(LARGE_PRIME);
+	Hashmap<string, int> hashmap(LARGE_PRIME);
 	hashmap.put("test", 5);
     auto [contained, value] = hashmap.get("test");
     assert(contained && value == 5);

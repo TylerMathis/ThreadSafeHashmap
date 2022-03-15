@@ -42,7 +42,7 @@ namespace tshm {
     template<
         class K,
         class V,
-        template<class> class Container = ll::LockableLL,
+        template<class> class Container = ll::AddOnlyLockFreeLL,
         class F = std::hash<K>>
     class Hashmap : IHashmap<K, V> {
         // Less typing later
@@ -92,8 +92,11 @@ namespace tshm {
 	 * 'put's to 'get's, we require that all actions of the previous
 	 * context fully finish execution.
 	 */
-	// types<Key, Value, HashFunction>
-	template<class K, class V, class F = std::hash<K>>
+	template<
+        class K,
+        class V,
+        template<class> class Container = ll::AddOnlyLockFreeLL,
+        class F = std::hash<K>>
 	class ManagedHashmap : IHashmap<K, V> {
 		// Less typing later
 		typedef Entry<K, V> TypedEntry;
@@ -102,7 +105,7 @@ namespace tshm {
 		// Private member variables
 		uint capacity;
 		F hash;
-        std::vector<ll::LockableLL<TypedEntry>> hashmap;
+        std::vector<Container<TypedEntry>> hashmap;
 
 		// We will using a counting semaphore to limit our job count
         semaphore::CountingSemaphore threadLock;
