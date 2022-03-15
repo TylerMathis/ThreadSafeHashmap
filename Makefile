@@ -8,8 +8,12 @@ test_hashmap: tests/TestHashmap.cpp
 	g++ tests/TestHashmap.cpp -O3 -std=c++17 -Wall -pthread -o test && ./test;
 	rm test;
 
-test_lockable_linked_list: tests/TestLockableLinkedList.cpp
-	g++ tests/TestLockableLinkedList.cpp -O3 -std=c++17 -Wall -pthread -o test && ./test;
+test_lockable_ll: tests/TestLockableLL.cpp
+	g++ tests/TestLockableLL.cpp -O3 -std=c++17 -Wall -pthread -o test && ./test;
+	rm test;
+
+test_add_only_lock_free_ll: tests/TestAddOnlyLockFreeLL.cpp
+	g++ tests/TestAddOnlyLockFreeLL.cpp -O3 -std=c++17 -Wall -pthread -o test && ./test;
 	rm test;
 
 test_managed_hashmap: tests/TestManagedHashmap.cpp
@@ -28,8 +32,12 @@ bench_hashmap: benches/BenchHashmap.cpp
 	g++ benches/BenchHashmap.cpp -O0 -std=c++17 -Wall -pthread -o bench && ./bench;
 	rm bench;
 
-bench_lockable_linked_list: benches/BenchLockableLinkedList.cpp
-	g++ benches/BenchLockableLinkedList.cpp -O0 -std=c++17 -Wall -pthread -o bench && ./bench;
+bench_lockable_ll: benches/BenchLockableLL.cpp
+	g++ benches/BenchLockableLL.cpp -O0 -std=c++17 -Wall -pthread -o bench && ./bench;
+	rm bench;
+
+bench_add_only_lock_free_ll: benches/BenchAddOnlyLockFreeLL.cpp
+	g++ benches/TestAddOnlyLockFreeLL.cpp -O0 -std=c++17 -Wall -pthread -o bench && ./bench;
 	rm bench;
 
 bench_managed_hashmap: benches/BenchManagedHashmap.cpp

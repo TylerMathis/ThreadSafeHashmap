@@ -23,8 +23,8 @@ int main() {
 	cout << "Testing single value...\n";
 	Hashmap<string, int> hashmap(LARGE_PRIME);
 	hashmap.put("test", 5);
-	int *value = hashmap.get("test");
-	assert(value != nullptr && *value == 5);
+    auto [contained, value] = hashmap.get("test");
+    assert(contained && value == 5);
 
     // Generate 1,000 random unique strings for testing
     set<string> seen;
@@ -45,8 +45,8 @@ int main() {
 
     auto getJob = [&](int start, int end) {
         for (int i = start; i <= end; i++) {
-            int *value = hashmap.get(rands[i]);
-            assert(value != nullptr && *value == i);
+            auto [contained, value] = hashmap.get(rands[i]);
+            assert(contained && value == i);
         }
     };
 
