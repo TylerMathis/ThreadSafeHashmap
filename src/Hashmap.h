@@ -5,6 +5,14 @@
 #include "Semaphore.h"
 #include "LinkedList.h"
 
+// Hashmap abstract
+template<class K, class V>
+class IHashmap {
+public:
+    virtual void put(const K &key, const V &val) = 0;
+    virtual std::pair<bool, V> get(const K &key) const = 0;
+};
+
 // Thread safe hashmap
 namespace tshm {
 
@@ -12,11 +20,11 @@ namespace tshm {
 	template<class K, class V>
 	struct Entry {
 		K key;
-		V value;
+		V val;
 		Entry() {}
 		// Just key constructor for lookups
 		Entry(K key) : key(key) {}
-		Entry(K key, V value) : key(key), value(value) {}
+		Entry(K key, V val) : key(key), val(val) {}
 
 		/*
 		 * We equate entries on key so that we don't have duplicates.
@@ -32,7 +40,7 @@ namespace tshm {
      * between close gets and sets is not defined
      */
     template<class K, class V, class F = std::hash<K>>
-    class Hashmap {
+    class Hashmap : IHashmap<K, V> {
         // Less typing later
         typedef Entry<K, V> TypedEntry;
 
@@ -43,7 +51,9 @@ namespace tshm {
         std::vector<ll::LockableLL<TypedEntry>> hashmap;
 
         // Wrapper method to extract index from key
-        size_t getHashedIndex(K key) { return hash(key) % capacity; }
+        size_t getHashedIndex(const K &key) const {
+            return hash(key) % capacity;
+        }
 
     public:
         // Construct hashmap
@@ -51,22 +61,23 @@ namespace tshm {
         Hashmap(uint capacity) : capacity(capacity), hashmap(capacity) {}
 
         // Nothing really interesting about the destructor
-        ~Hashmap() {}
+        virtual ~Hashmap() {}
 
         // Associate specified key with specified value
-        void put(const K key, const V value) {
+        void put(const K &key, const V &val) {
             size_t index = getHashedIndex(key);
-            hashmap[index].add(TypedEntry(key, value));
+            hashmap[index].add(TypedEntry(key, val));
         }
 
-        // Get a pointer to the value in the map
-        V *get(const K key) {
-			// Get item
+        // Return the status of containment and value
+        std::pair<bool, V> get(const K &key) const {
 			size_t index = getHashedIndex(key);
-			auto entry = hashmap[index].get(TypedEntry(key));
 
-			// Return if it exists
-			return entry == nullptr ? nullptr : &(entry->value);
+            TypedEntry entry(key);
+			if (hashmap[index].find(entry))
+                return {true, entry.val};
+
+            return {false, V{}};
         }
     };
 
@@ -79,7 +90,7 @@ namespace tshm {
 	 */
 	// types<Key, Value, HashFunction>
 	template<class K, class V, class F = std::hash<K>>
-	class ManagedHashmap {
+	class ManagedHashmap : IHashmap<K, V> {
 		// Less typing later
 		typedef Entry<K, V> TypedEntry;
 
@@ -93,7 +104,9 @@ namespace tshm {
         semaphore::CountingSemaphore threadLock;
 
 		// Wrapper method to extract index from key
-		size_t getHashedIndex(K key) { return hash(key) % capacity; }
+		size_t getHashedIndex(const K &key) const {
+            return hash(key) % capacity;
+        }
 
 	public:
 		// Construct a new managed hashmap
@@ -104,10 +117,10 @@ namespace tshm {
 			threadLock(maxWorkerThreads) {}
 
 		// On destruct, wait for all operations to finish
-		~ManagedHashmap() { while (threadLock.active); }
+		virtual ~ManagedHashmap() { while (threadLock.active); }
 
 		// Associate specified key with specified value
-		void put(const K key, const V value) {
+		void put(const K &key, const V &val) {
 			// Acquire the thread semaphore
 			threadLock.acquire();
 
@@ -116,7 +129,7 @@ namespace tshm {
 				size_t index = getHashedIndex(entry.key);
 				hashmap[index].add(entry);
 				threadLock.release();
-			}, TypedEntry(key, value));
+			}, TypedEntry(key, val));
 
 			// Detach the thread
 			t.detach();
@@ -130,16 +143,17 @@ namespace tshm {
 
 		 * TODO: Implement promises
 		 */
-		V *getSequential(const K key) {
+        std::pair<bool, V> get(const K &key) const {
 			// Spin until all puts are done
 			while (threadLock.active);
 
 			// Get item
 			size_t index = getHashedIndex(key);
-			auto entry = hashmap[index].get(TypedEntry(key));
+            TypedEntry entry(key);
+            if (hashmap[index].find(entry))
+                return {true, entry.val};
 
-			// Return if it exists
-			return entry == nullptr ? nullptr : &(entry->value);
+            return {false, V{}};
 		}
 	};
 };
