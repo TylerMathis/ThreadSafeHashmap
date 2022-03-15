@@ -3,15 +3,118 @@
 #include <mutex>
 #include <atomic>
 
+// Linked list abstract
+template<class T>
+class ILinkedList {
+public:
+    // Add an element to the list
+    virtual void add(const T &val) = 0;
+
+    // Find an element, return containment
+    // Stores found element in val
+    virtual bool find(T &val) const = 0;
+};
+
 namespace ll {
+
+    // Lock free linked list
+    // No support for deletion
+    template<class T>
+    class AddOnlyLockFreeLL : ILinkedList<T> {
+    private:
+        // Regular linked list node
+        struct Node {
+            std::atomic<Node *> next = nullptr;
+            T val;
+
+            Node() {} // Dummy node for head
+            Node(T val) : val(val) {}
+        };
+
+        // Size and head
+        std::atomic_size_t curSize;
+        Node *head;
+
+    public:
+        // Construct
+        AddOnlyLockFreeLL() : curSize(0) {
+            head = new Node();
+        }
+
+        // Free everything
+        virtual ~AddOnlyLockFreeLL() {
+            Node *curr = head;
+            while (curr != nullptr) {
+                Node *toRemove = curr;
+                curr = curr->next;
+                delete toRemove;
+            }
+        }
+
+        // Get the head, not thread safe
+        Node *NOT_THREAD_SAFE_getHead() { return head; }
+
+        // Add new element to the list
+        void add(const T &val) {
+            Node *toAdd = new Node(val);
+
+            // Keep going till we find success
+            while (true) {
+                Node *pred = head, *curr = head->next;
+
+                while (curr != nullptr) {
+                    // Found it, update
+                    if (curr->val == val) {
+                        curr->val = val;
+                        delete toAdd;
+                        return;
+                    }
+
+                    pred = curr;
+                    curr = curr->next;
+                }
+
+                // Connect new node
+                toAdd->next = curr;
+
+                // Add with CAS
+                Node *expected = curr;
+                Node *required = toAdd;
+                if (pred->next.compare_exchange_weak(
+                    expected,
+                    required
+                )) {
+                    curSize++;
+                    return;
+                }
+            }
+        }
+
+        bool find(T &val) const {
+            Node *curr = head->next;
+
+            while (curr != nullptr) {
+                // Found it
+                if (curr->val == val) {
+                    val = curr->val;
+                    return true;
+                }
+
+                curr = curr->next;
+            }
+
+            return false;
+        }
+
+        size_t size() { return curSize; }
+    };
 
 	// Hand over hand locked linked list
 	template<class T>
-	class LockableLL {
-
+	class LockableLL : ILinkedList<T> {
 	private:
-        // Lockable Linked-List node
-        class LockableNode {
+        // Lockable linked-list node
+        struct LockableNode {
         private:
             // Lock
             std::mutex mtx;
@@ -47,7 +150,7 @@ namespace ll {
 		LockableLL() : curSize(0) {}
 
 		// Destructor, free all nodes
-		~LockableLL() {
+		virtual ~LockableLL() {
 			// Obtain lock on head
 			LockableNode *mover = head;
 			mover->lock();
@@ -64,10 +167,10 @@ namespace ll {
 		}
 
 		// Returns the head. Not thread safe
-		LockableNode *DANGEROUS_getHead() { return head; }
+		LockableNode *NOT_THREAD_SAFE_getHead() { return head; }
 
 		// Add new element to the linked list
-		void add(T val) {
+		void add(const T &val) {
 			// Maintain lock on cur node
 			LockableNode *mover = head;
 			mover->lock();
@@ -79,7 +182,6 @@ namespace ll {
 				if (!isHead && mover->val == val) {
 					mover->val = val;
 					mover->unlock();
-					curSize++;
 					return;
 				}
 
@@ -140,11 +242,11 @@ namespace ll {
 			return false;
 		}
 
-		// Returns the value if it exists, null otherwise
-		T *get(T val) {
+        // Return existence, store val in param
+        bool find(T &val) const {
 			// Empty list
 			if (head->next == nullptr)
-				return nullptr;
+				return false;
 
 			// Maintain lock on current node
 		    LockableNode *mover = head->next;
@@ -153,9 +255,9 @@ namespace ll {
 			// Check for existence
 			while (true) {
 				if (mover->val == val) {
-					T *ret = &(mover->val);
+                    val = mover->val;
 					mover->unlock();
-					return ret;
+					return true;
 				}
 
 				// Get next and break if done
@@ -163,7 +265,7 @@ namespace ll {
 
 				if (next == nullptr) {
 					mover->unlock();
-					return nullptr;
+					return false;
 				}
 
 				// Move
