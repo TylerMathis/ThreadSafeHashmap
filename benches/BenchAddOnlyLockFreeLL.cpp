@@ -21,7 +21,7 @@ int main() {
     cout << "\n\nBENCHING ADD ONLY LOCK FREE LINKED LIST\n\n";
 
     ofstream res("analysis/data/add_only_lock_free_ll.csv");
-    res << "lim,threads,runtime\n";
+    res << "limit,threads,runtime\n";
 	for (int LIM : LIM_TESTS) {
 		/*
 		 * SEQUENTIAL BENCHING

@@ -24,7 +24,7 @@ int main() {
 	for (int &x : randoms) x = rand();
 
     ofstream res("analysis/data/stl_hashmap.csv");
-    res << "lim,runtime\n";
+    res << "limit,runtime\n";
     for (int j = 0; j < sz(LIM_TESTS); j++) {
         int LIM = LIM_TESTS[j];
 
