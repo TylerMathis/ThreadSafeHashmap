@@ -37,7 +37,7 @@ bench_lockable_ll: benches/BenchLockableLL.cpp
 	rm bench;
 
 bench_add_only_lock_free_ll: benches/BenchAddOnlyLockFreeLL.cpp
-	g++ benches/TestAddOnlyLockFreeLL.cpp -O0 -std=c++17 -Wall -pthread -o bench && ./bench;
+	g++ benches/BenchAddOnlyLockFreeLL.cpp -O0 -std=c++17 -Wall -pthread -o bench && ./bench;
 	rm bench;
 
 bench_managed_hashmap: benches/BenchManagedHashmap.cpp
