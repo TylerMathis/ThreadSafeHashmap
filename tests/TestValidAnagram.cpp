@@ -10,24 +10,23 @@ using tshm::Hashmap;
 using std::string;
 namespace chrono = std::chrono;
 
-
-int testAnagramNormal(string str1, string str2) {
+void testAnagramNormal(string str1, string str2) {
     int len = str1.length();
     Hashmap<char, int> anagrams(504821);
 
     for (int i = 0; i < len; i++) {
-        auto [_, val1] = anagrams.get(str1[i]);
-        anagrams.put(str1[i], val1 += 1);
-        
-        auto [__, val2] = anagrams.get(str2[i]);
-        anagrams.put(str2[i], val2 -= 1);
+        auto res = anagrams.get(str1[i]);
+        anagrams.put(str1[i], res.second + 1);
+
+        res = anagrams.get(str2[i]);
+        anagrams.put(str2[i], res.second - 1);
     }
 
     for (int i = 0; i < len; i++) {
-        auto [found, val] = anagrams.get(str1[i]);
-        if (val != 0) {
+        auto res = anagrams.get(str1[i]);
+        if (res.second != 0) {
             cout << "Booo. Not an anagram. :(\n";
-            return -1;
+            return;
         }
     }
 
@@ -37,7 +36,7 @@ int testAnagramNormal(string str1, string str2) {
 int testAnagramParallel(string str1, string str2) {
     int len = str1.length();
     Hashmap<char, int> anagrams(len);
-    
+
 
     // auto putJob = [&](int start, int end) {
     //     for (int i = start; i <= end; i++)
@@ -76,14 +75,14 @@ int main() {
         cout << "Booo. Not an anagram. :(\n";
         return -1;
     }
-    
-    // lock::now();
-    // cout << "Anagram Validator Test: Normal\n";
+
+    cout << "Anagram Validator Test: Normal\n";
+    auto start1 = chrono::system_clock::now();
     testAnagramNormal(str1, str2);
-    // auto stop1 = chrono::system_clock::now();
-    // auto totalTime = chrono::duration_cast<chrono::milliseconds>(stop1 - start1).count();
-    // cout << "Execution Time for Anagram Validator (NORMAL): " << totalTime << " microseconds\n";
- 
+    auto stop1 = chrono::system_clock::now();
+    auto totalTime = chrono::duration_cast<chrono::milliseconds>(stop1 - start1).count();
+    cout << "Execution Time for Anagram Validator (NORMAL): " << totalTime << " milliseconds\n";
+
 
     // auto start2 = chrono::system_clock::now();
     // cout << "Anagram Validator Test: Parallel\n";
