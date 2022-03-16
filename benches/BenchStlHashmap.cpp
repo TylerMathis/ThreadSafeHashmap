@@ -2,12 +2,14 @@
 #include <chrono>
 #include <vector>
 #include <unordered_map>
+#include <fstream>
 
 namespace chrono = std::chrono;
 
 using std::cout;
 using std::vector;
 using std::unordered_map;
+using std::ofstream;
 
 #define sz(x) (int)(x).size()
 
@@ -21,6 +23,8 @@ int main() {
 	vector<int> randoms(LIM_TESTS.back());
 	for (int &x : randoms) x = rand();
 
+    ofstream res("analysis/data/stl_hashmap.csv");
+    res << "limit,runtime\n";
     for (int j = 0; j < sz(LIM_TESTS); j++) {
         int LIM = LIM_TESTS[j];
 
@@ -33,5 +37,6 @@ int main() {
 
         auto totalTime = chrono::duration_cast<chrono::milliseconds>(endTime - startTime).count();
         cout << "Lim: " << LIM << " " << totalTime << "ms\n";
+        res << LIM << "," << totalTime << "\n";
     }
 }

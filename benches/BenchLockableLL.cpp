@@ -2,6 +2,7 @@
 #include <chrono>
 #include <vector>
 #include <thread>
+#include <fstream>
 #include "../src/LinkedList.h"
 
 namespace chrono = std::chrono;
@@ -9,6 +10,7 @@ namespace chrono = std::chrono;
 using std::cout;
 using std::vector;
 using std::thread;
+using std::ofstream;
 
 using ll::LockableLL;
 
@@ -18,6 +20,8 @@ vector<int> THREAD_TESTS = {2, 4};
 int main() {
     cout << "\n\nBENCHING LOCKABLE LINKED LIST\n\n";
 
+    ofstream res("analysis/data/lockable_ll.csv");
+    res << "limit,threads,runtime\n";
 	for (int LIM : LIM_TESTS) {
 		/*
 		 * SEQUENTIAL BENCHING
@@ -33,6 +37,7 @@ int main() {
 
 		auto totalTime = chrono::duration_cast<chrono::milliseconds>(endTime - startTime).count();
 		cout << "Sequential insertions: " << totalTime << "ms\n";
+        res << LIM << "," << 1 << "," << totalTime << "\n";
 
 		for (int THREADS : THREAD_TESTS) {
 			/*
@@ -55,6 +60,7 @@ int main() {
 
 			totalTime = chrono::duration_cast<chrono::milliseconds>(endTime - startTime).count();
 			cout << "Parallel (" << THREADS << " threads) insertions: " << totalTime << "ms\n";
+            res << LIM << "," << THREADS << "," << totalTime << "\n";
 		}
 	}
 

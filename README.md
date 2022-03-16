@@ -12,3 +12,7 @@ When adding new code, please supply tests in the `tests` directory in a file cal
 ## Benchmarking
 
 When adding new code, please supply sequential vs threaded benchmarks in the `benches` directory in a file called `Bench<feature>.cpp`, utilizing the `chrono` namepsace for timing utilities and reporting time in `ms`. Run your benchmarks with `make bench`.
+
+## Data visualization
+
+To spin up our benchmark visualizations, you will need a Conda installation. If you are unfamiliar with Conda, I recommend installing `miniconda`. Once installed, create a new virtual environment with `conda create -n <name>`. Then, you can install the visualization dependencies with `conda install --file analysis/conda_req.txt`. Finally, spin up a Jupyter Labs sessions with `jupyter-lab`, and open and run the `analysis/notebook.ipynb` to view visualizations.

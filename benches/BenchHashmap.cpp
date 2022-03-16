@@ -2,6 +2,7 @@
 #include <chrono>
 #include <vector>
 #include <thread>
+#include <fstream>
 #include "../src/Hashmap.h"
 
 namespace chrono = std::chrono;
@@ -9,6 +10,7 @@ namespace chrono = std::chrono;
 using std::cout;
 using std::vector;
 using std::thread;
+using std::ofstream;
 
 using tshm::Hashmap;
 
@@ -68,6 +70,8 @@ int main() {
 	cout << "Results summary:\n";
 	cout << "----------------\n";
 
+    ofstream res("analysis/data/hashmap.csv");
+    res << "capacity,limit,threads,runtime\n";
 	for (int i = 0; i < sz(CAPACITY_TESTS); i++) {
 		cout << "Tests for capacity " << CAPACITY_TESTS[i] << "\n";
 		printf("%-15s|", "Limit\\Threads");
@@ -76,10 +80,18 @@ int main() {
 		cout << "\n";
 		for (int j = 0; j < sz(LIM_TESTS); j++) {
 			printf("%-15d|", LIM_TESTS[j]);
-			for (int k = 0; k < sz(THREAD_TESTS); k++)
+			for (int k = 0; k < sz(THREAD_TESTS); k++) {
 				printf(" %-5lldms|", results[i][j][k]);
+                res <<
+                    CAPACITY_TESTS[i] << "," <<
+                    LIM_TESTS[j] << "," <<
+                    THREAD_TESTS[k] << "," <<
+                    results[i][j][k] << "\n";
+            }
 			cout << "\n";
 		}
 		cout << "\n";
 	}
+
+    res.close();
 }
