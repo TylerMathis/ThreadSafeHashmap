@@ -8,6 +8,10 @@ test_hashmap: tests/TestHashmap.cpp
 	g++ tests/TestHashmap.cpp -O3 -std=c++17 -Wall -pthread -o test && ./test;
 	rm test;
 
+test_hashset: tests/TestHashset.cpp
+	g++ tests/TestHashset.cpp -O3 -std=c++17 -Wall -pthread -o test && ./test;
+	rm test;
+
 test_lockable_ll: tests/TestLockableLL.cpp
 	g++ tests/TestLockableLL.cpp -O3 -std=c++17 -Wall -pthread -o test && ./test;
 	rm test;
@@ -30,6 +34,10 @@ bench: benches/Bench*.cpp
 
 bench_hashmap: benches/BenchHashmap.cpp
 	g++ benches/BenchHashmap.cpp -O0 -std=c++17 -Wall -pthread -o bench && ./bench;
+	rm bench;
+
+bench_hashset: benches/BenchHashset.cpp
+	g++ benches/BenchHashset.cpp -O0 -std=c++17 -Wall -pthread -o bench && ./bench;
 	rm bench;
 
 bench_lockable_ll: benches/BenchLockableLL.cpp
