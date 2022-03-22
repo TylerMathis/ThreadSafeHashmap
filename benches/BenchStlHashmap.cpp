@@ -18,10 +18,10 @@ vector<int> LIM_TESTS = {10'000, 100'000, 1'000'000};
 int main() {
     cout << "\n\nBENCHING STL HASHMAP\n\n";
 
-	// Get random numbers for use later
-	srand(time(NULL));
-	vector<int> randoms(LIM_TESTS.back());
-	for (int &x : randoms) x = rand();
+    // Get random numbers for use later
+    srand(time(NULL));
+    vector<int> randoms(LIM_TESTS.back());
+    for (int &x : randoms) x = rand();
 
     ofstream res("analysis/data/stl_hashmap.csv");
     res << "limit,runtime\n";

@@ -22,47 +22,47 @@ int main() {
 
     ofstream res("analysis/data/add_only_lock_free_ll.csv");
     res << "limit,threads,runtime\n";
-	for (int LIM : LIM_TESTS) {
-		/*
-		 * SEQUENTIAL BENCHING
-		 */
-		AddOnlyLockFreeLL<int> sequential;
+    for (int LIM : LIM_TESTS) {
+        /*
+         * SEQUENTIAL BENCHING
+         */
+        AddOnlyLockFreeLL<int> sequential;
 
-		cout << LIM << " insertions...\n";
+        cout << LIM << " insertions...\n";
 
-		auto startTime = chrono::system_clock::now();
-		for (int x = 0; x < LIM; x++)
-			sequential.add(x);
-		auto endTime = chrono::system_clock::now();
+        auto startTime = chrono::system_clock::now();
+        for (int x = 0; x < LIM; x++)
+            sequential.add(x);
+        auto endTime = chrono::system_clock::now();
 
-		auto totalTime = chrono::duration_cast<chrono::milliseconds>(endTime - startTime).count();
-		cout << "Sequential insertions: " << totalTime << "ms\n";
+        auto totalTime = chrono::duration_cast<chrono::milliseconds>(endTime - startTime).count();
+        cout << "Sequential insertions: " << totalTime << "ms\n";
         res << LIM << "," << 1 << "," << totalTime << "\n";
 
-		for (int THREADS : THREAD_TESTS) {
-			/*
-			 * PARALLEL BENCHING
-			 */
-			AddOnlyLockFreeLL<int> parallel;
+        for (int THREADS : THREAD_TESTS) {
+            /*
+             * PARALLEL BENCHING
+             */
+            AddOnlyLockFreeLL<int> parallel;
 
-			auto addJob = [&parallel](int start, int lim, int threads) {
-				for (int x = start; x < lim; x += threads)
-					parallel.add(x);
-			};
+            auto addJob = [&parallel](int start, int lim, int threads) {
+                for (int x = start; x < lim; x += threads)
+                    parallel.add(x);
+            };
 
-			vector<thread> jobs;
-			startTime = chrono::system_clock::now();
-			for (int thread = 0; thread < THREADS; thread++)
-				jobs.emplace_back(addJob, thread, LIM, THREADS);
-			for (thread &t : jobs)
-				t.join();
-			endTime = chrono::system_clock::now();
+            vector<thread> jobs;
+            startTime = chrono::system_clock::now();
+            for (int thread = 0; thread < THREADS; thread++)
+                jobs.emplace_back(addJob, thread, LIM, THREADS);
+            for (thread &t : jobs)
+                t.join();
+            endTime = chrono::system_clock::now();
 
-			totalTime = chrono::duration_cast<chrono::milliseconds>(endTime - startTime).count();
-			cout << "Parallel (" << THREADS << " threads) insertions: " << totalTime << "ms\n";
+            totalTime = chrono::duration_cast<chrono::milliseconds>(endTime - startTime).count();
+            cout << "Parallel (" << THREADS << " threads) insertions: " << totalTime << "ms\n";
             res << LIM << "," << THREADS << "," << totalTime << "\n";
-		}
-	}
+        }
+    }
 
     return 0;
 }

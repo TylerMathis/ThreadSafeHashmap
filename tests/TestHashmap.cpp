@@ -18,11 +18,11 @@ using tshm::Hashmap;
 const int LARGE_PRIME = 8675309;
 
 int main() {
-	cout << "\n\nHASHMAP TESTING...\n\n";
+    cout << "\n\nHASHMAP TESTING...\n\n";
 
-	cout << "Testing single value...\n";
-	Hashmap<string, int> hashmap(LARGE_PRIME);
-	hashmap.put("test", 5);
+    cout << "Testing single value...\n";
+    Hashmap<string, int> hashmap(LARGE_PRIME);
+    hashmap.put("test", 5);
     auto [contained, value] = hashmap.get("test");
     assert(contained && value == 5);
 
@@ -50,7 +50,7 @@ int main() {
         }
     };
 
-	cout << "Testing threaded put...\n";
+    cout << "Testing threaded put...\n";
     vector<thread> threads;
     for (int i = 0; i < 10; i++)
         threads.emplace_back(putJob, i*10, 10);
@@ -65,7 +65,7 @@ int main() {
         t.join();
     threads.clear();
 
-	cout << "\nSuccess :D\n";
+    cout << "\nSuccess :D\n";
 
     return 0;
 }

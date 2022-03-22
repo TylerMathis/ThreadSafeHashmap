@@ -12,39 +12,39 @@ using tshm::ManagedHashmap;
 const int LARGE_PRIME = 8675309;
 
 int main() {
-	cout << "\n\nMANAGED HASHMAP TESTING...\n\n";
+    cout << "\n\nMANAGED HASHMAP TESTING...\n\n";
 
-	cout << "Testing single value...\n";
-	ManagedHashmap<string, int> hashmap(LARGE_PRIME);
-	hashmap.put("test", 5);
+    cout << "Testing single value...\n";
+    ManagedHashmap<string, int> hashmap(LARGE_PRIME);
+    hashmap.put("test", 5);
     auto [contained, value] = hashmap.get("test");
-	assert(contained && value == 5);
+    assert(contained && value == 5);
 
-	cout << "Testing threaded put...\n";
-	for (int i = 0; i < 26; i++) {
-		string key(1, 'a' + i);
-		hashmap.put(key, i);
-	}
+    cout << "Testing threaded put...\n";
+    for (int i = 0; i < 26; i++) {
+        string key(1, 'a' + i);
+        hashmap.put(key, i);
+    }
 
-	cout << "Testing sequential get...\n";
-	for (int i = 0; i < 26; i++) {
-		string key(1, 'a' + i);
+    cout << "Testing sequential get...\n";
+    for (int i = 0; i < 26; i++) {
+        string key(1, 'a' + i);
         auto [contained, value] = hashmap.get(key);
         assert(contained && value == i);
-	}
+    }
 
-	cout << "Testing threaded overwrites...\n";
-	for (int i = 0; i < 26; i++) {
-		string key(1, 'a' + i);
-		hashmap.put(key, 2*i);
-	}
-	for (int i = 0; i < 26; i++) {
-		string key(1, 'a' + i);
+    cout << "Testing threaded overwrites...\n";
+    for (int i = 0; i < 26; i++) {
+        string key(1, 'a' + i);
+        hashmap.put(key, 2*i);
+    }
+    for (int i = 0; i < 26; i++) {
+        string key(1, 'a' + i);
         auto [contained, value] = hashmap.get(key);
-		assert(contained && value == 2*i);
-	}
+        assert(contained && value == 2*i);
+    }
 
-	cout << "\nSuccess :D\n";
+    cout << "\nSuccess :D\n";
 
     return 0;
 }
