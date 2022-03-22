@@ -25,8 +25,8 @@ int main() {
 		sequentialList.add(x);
 	assert(sequentialList.size() == 10);
 	for (int x = 0; x < 10; x++) {
-        int search = x;
-        assert(sequentialList.find(search) && search == x);
+		int search = x;
+		assert(sequentialList.find(search) && search == x);
 	}
 
 	cout << "Testing sequential remove...\n";
@@ -34,8 +34,8 @@ int main() {
 		assert(sequentialList.remove(x));
 	assert(sequentialList.size() == 5);
 	for (int x = 0; x < 10; x++) {
-        int search = x;
-        bool found = sequentialList.find(search);
+		int search = x;
+		bool found = sequentialList.find(search);
 		if (x & 1) assert(found && search == x);
 		else assert(!found);
 	}
@@ -58,7 +58,7 @@ int main() {
 
 	auto checkWorker = [&threadedList](int start, int lim, int inc, bool exists) {
 		for (int x = start; x < lim; x += inc) {
-            int search = x;
+			int search = x;
 			bool found = threadedList.find(search);
 			if (exists) assert(found && search == x);
 			else assert(!found);

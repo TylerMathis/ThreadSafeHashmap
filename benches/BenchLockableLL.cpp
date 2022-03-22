@@ -18,10 +18,10 @@ vector<int> LIM_TESTS = {10, 100, 1'000, 10'000, 20'000};
 vector<int> THREAD_TESTS = {2, 4};
 
 int main() {
-    cout << "\n\nBENCHING LOCKABLE LINKED LIST\n\n";
+	cout << "\n\nBENCHING LOCKABLE LINKED LIST\n\n";
 
-    ofstream res("analysis/data/lockable_ll.csv");
-    res << "limit,threads,runtime\n";
+	ofstream res("analysis/data/lockable_ll.csv");
+	res << "limit,threads,runtime\n";
 	for (int LIM : LIM_TESTS) {
 		/*
 		 * SEQUENTIAL BENCHING
@@ -37,7 +37,7 @@ int main() {
 
 		auto totalTime = chrono::duration_cast<chrono::milliseconds>(endTime - startTime).count();
 		cout << "Sequential insertions: " << totalTime << "ms\n";
-        res << LIM << "," << 1 << "," << totalTime << "\n";
+		res << LIM << "," << 1 << "," << totalTime << "\n";
 
 		for (int THREADS : THREAD_TESTS) {
 			/*
@@ -60,10 +60,10 @@ int main() {
 
 			totalTime = chrono::duration_cast<chrono::milliseconds>(endTime - startTime).count();
 			cout << "Parallel (" << THREADS << " threads) insertions: " << totalTime << "ms\n";
-            res << LIM << "," << THREADS << "," << totalTime << "\n";
+			res << LIM << "," << THREADS << "," << totalTime << "\n";
 		}
 	}
 
-    return 0;
+	return 0;
 }
 

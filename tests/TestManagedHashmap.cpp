@@ -17,7 +17,7 @@ int main() {
 	cout << "Testing single value...\n";
 	ManagedHashmap<string, int> hashmap(LARGE_PRIME);
 	hashmap.put("test", 5);
-    auto [contained, value] = hashmap.get("test");
+	auto [contained, value] = hashmap.get("test");
 	assert(contained && value == 5);
 
 	cout << "Testing threaded put...\n";
@@ -29,8 +29,8 @@ int main() {
 	cout << "Testing sequential get...\n";
 	for (int i = 0; i < 26; i++) {
 		string key(1, 'a' + i);
-        auto [contained, value] = hashmap.get(key);
-        assert(contained && value == i);
+		auto [contained, value] = hashmap.get(key);
+		assert(contained && value == i);
 	}
 
 	cout << "Testing threaded overwrites...\n";
@@ -40,12 +40,12 @@ int main() {
 	}
 	for (int i = 0; i < 26; i++) {
 		string key(1, 'a' + i);
-        auto [contained, value] = hashmap.get(key);
+		auto [contained, value] = hashmap.get(key);
 		assert(contained && value == 2*i);
 	}
 
 	cout << "\nSuccess :D\n";
 
-    return 0;
+	return 0;
 }
 

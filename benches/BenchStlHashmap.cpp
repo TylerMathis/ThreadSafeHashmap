@@ -16,27 +16,27 @@ using std::ofstream;
 vector<int> LIM_TESTS = {10'000, 100'000, 1'000'000};
 
 int main() {
-    cout << "\n\nBENCHING STL HASHMAP\n\n";
+	cout << "\n\nBENCHING STL HASHMAP\n\n";
 
 	// Get random numbers for use later
 	srand(time(NULL));
 	vector<int> randoms(LIM_TESTS.back());
 	for (int &x : randoms) x = rand();
 
-    ofstream res("analysis/data/stl_hashmap.csv");
-    res << "limit,runtime\n";
-    for (int j = 0; j < sz(LIM_TESTS); j++) {
-        int LIM = LIM_TESTS[j];
+	ofstream res("analysis/data/stl_hashmap.csv");
+	res << "limit,runtime\n";
+	for (int j = 0; j < sz(LIM_TESTS); j++) {
+		int LIM = LIM_TESTS[j];
 
-        unordered_map<int, int> hashmap;
+		unordered_map<int, int> hashmap;
 
-        auto startTime = chrono::system_clock::now();
-        for (int x = 0; x < LIM; x++)
-            hashmap[randoms[x]] = x;
-        auto endTime = chrono::system_clock::now();
+		auto startTime = chrono::system_clock::now();
+		for (int x = 0; x < LIM; x++)
+			hashmap[randoms[x]] = x;
+		auto endTime = chrono::system_clock::now();
 
-        auto totalTime = chrono::duration_cast<chrono::milliseconds>(endTime - startTime).count();
-        cout << "Lim: " << LIM << " " << totalTime << "ms\n";
-        res << LIM << "," << totalTime << "\n";
-    }
+		auto totalTime = chrono::duration_cast<chrono::milliseconds>(endTime - startTime).count();
+		cout << "Lim: " << LIM << " " << totalTime << "ms\n";
+		res << LIM << "," << totalTime << "\n";
+	}
 }
