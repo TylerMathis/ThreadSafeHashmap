@@ -15,13 +15,11 @@ using std::thread;
 
 using tshs::Hashset;
 
-const int LARGE_PRIME = 8675309;
-
 int main() {
 	cout << "\n\nHASHSET TESTING...\n\n";
 
 	cout << "Testing single value...\n";
-	Hashset<string> hashset(LARGE_PRIME);
+	Hashset<string> hashset(5'000);
 	hashset.insert("test");
 	assert(hashset.contains("test"));
 	assert(!hashset.contains("testy"));

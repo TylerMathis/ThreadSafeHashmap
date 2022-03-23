@@ -62,7 +62,6 @@ namespace tshm {
 
 	public:
 		// Construct hashmap
-		// Use a prime capcacity
 		Hashmap(uint capacity) : capacity(capacity), hashmap(capacity) {}
 
 		// Nothing really interesting about the destructor
@@ -119,7 +118,6 @@ namespace tshm {
 
 	public:
 		// Construct a new managed hashmap
-		// Use a prime capacity
 		ManagedHashmap(uint capacity, uint maxWorkerThreads = 4)
 			: capacity(capacity), hashmap(capacity),
 			threadLock(maxWorkerThreads) {}

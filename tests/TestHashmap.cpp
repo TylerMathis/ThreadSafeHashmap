@@ -15,13 +15,11 @@ using std::thread;
 
 using tshm::Hashmap;
 
-const int LARGE_PRIME = 8675309;
-
 int main() {
 	cout << "\n\nHASHMAP TESTING...\n\n";
 
 	cout << "Testing single value...\n";
-	Hashmap<string, int> hashmap(LARGE_PRIME);
+	Hashmap<string, int> hashmap(5'000);
 	hashmap.put("test", 5);
 	auto [contained, value] = hashmap.get("test");
 	assert(contained && value == 5);

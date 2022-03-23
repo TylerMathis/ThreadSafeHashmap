@@ -9,13 +9,11 @@ using std::string;
 
 using tshm::ManagedHashmap;
 
-const int LARGE_PRIME = 8675309;
-
 int main() {
 	cout << "\n\nMANAGED HASHMAP TESTING...\n\n";
 
 	cout << "Testing single value...\n";
-	ManagedHashmap<string, int> hashmap(LARGE_PRIME);
+	ManagedHashmap<string, int> hashmap(5'000);
 	hashmap.put("test", 5);
 	auto [contained, value] = hashmap.get("test");
 	assert(contained && value == 5);

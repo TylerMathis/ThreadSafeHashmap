@@ -16,7 +16,7 @@ using tshm::Hashmap;
 
 #define sz(x) (int)(x).size()
 
-vector<int> CAPACITY_TESTS = {8'675'309, 31'013, 10'007};
+vector<int> CAPACITY_TESTS = {50'000, 500'000, 5'000'000};
 vector<int> LIM_TESTS = {10'000, 100'000, 1'000'000};
 vector<int> THREAD_TESTS = {1, 2, 4, 8};
 

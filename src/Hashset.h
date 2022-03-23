@@ -36,7 +36,6 @@ namespace tshs {
 
 	public:
 		// Construct hashmap
-		// Use a prime capcacity
 		Hashset(uint capacity) : capacity(capacity), hashset(capacity) {}
 
 		// Nothing really interesting about the destructor
