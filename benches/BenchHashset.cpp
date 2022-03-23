@@ -18,7 +18,7 @@ using tshs::Hashset;
 
 vector<int> CAPACITY_TESTS = {50'000, 500'000, 5'000'000};
 vector<int> LIM_TESTS = {10'000, 100'000, 1'000'000};
-vector<int> THREAD_TESTS = {1, 2, 4, 8};
+vector<int> THREAD_TESTS = {1, 2, 4, 8, 16, 20};
 
 int main() {
 	cout << "\n\nBENCHING HASHSET\n\n";

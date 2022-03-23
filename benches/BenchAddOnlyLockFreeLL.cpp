@@ -15,7 +15,7 @@ using std::ofstream;
 using ll::AddOnlyLockFreeLL;
 
 vector<int> LIM_TESTS = {10, 100, 1'000, 10'000, 20'000};
-vector<int> THREAD_TESTS = {2, 4};
+vector<int> THREAD_TESTS = {2, 4, 8, 16, 20};
 
 int main() {
 	cout << "\n\nBENCHING ADD ONLY LOCK FREE LINKED LIST\n\n";

@@ -16,7 +16,7 @@ using tshm::ManagedHashmap;
 
 vector<int> CAPACITY_TESTS = {50'000, 500'000};
 vector<int> LIM_TESTS = {10'000, 100'000};
-vector<int> THREAD_TESTS = {1, 2, 4};
+vector<int> THREAD_TESTS = {1, 2, 4, 8, 16, 20};
 
 int main() {
 	cout << "\n\nBENCHING MANAGED HASHMAP\n\n";
