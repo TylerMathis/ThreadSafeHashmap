@@ -51,14 +51,14 @@ int main() {
 	cout << "Testing threaded put...\n";
 	vector<thread> threads;
 	for (int i = 0; i < 10; i++)
-		threads.emplace_back(putJob, i*10, 10);
+		threads.emplace_back(putJob, i*10, i*10 + 9);
 	for (thread &t : threads)
 		t.join();
 	threads.clear();
 
 	cout << "Testing threaded get...\n";
 	for (int i = 0; i < 10; i++)
-		threads.emplace_back(getJob, i*10, 10);
+		threads.emplace_back(getJob, i*10, i*10 + 9);
 	for (thread &t : threads)
 		t.join();
 	threads.clear();
