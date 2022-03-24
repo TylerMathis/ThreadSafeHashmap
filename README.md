@@ -13,9 +13,18 @@ Use CamelCase for all names. Start types (such as classes, structs, and typedefs
 
 When adding new code, please supply tests in the `tests` directory in a file called `Test<feature>.cpp`, utilizing assertions for invariants. Run your tests with `make test`.
 
+Testing description and requirements:
+ - All tests must *fully* test all behavior and functionality of the structure being tested.
+ - Examples can be found in the `tests` directory.
+
 ## Benchmarking
 
 When adding new code, please supply sequential vs threaded benchmarks in the `benches` directory in a file called `Bench<feature>.cpp`, utilizing the `chrono` namepsace for timing utilities and reporting time in `ms`. Run your benchmarks with `make bench`.
+
+Benchmarking description and requirements:
+ - All benchmarks must must benchmark reasonable scenarios using wall-clock time, and output their results to a `csv` file in the `analysis/data` directory.
+ - After completing a benchmark, please provide graphs that correctly describe your benchmarks in the analysis directory.
+ - Benchmarks will be run and updated by a consistent machine before each official paper update for consistency.
 
 ## Data visualization
 
