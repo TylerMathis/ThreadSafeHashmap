@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <mutex>
 #include <atomic>
+#include "MarkableReference.h"
 
 // Linked list abstract
 template<class T>
@@ -12,10 +13,200 @@ public:
 
 	// Find an element, return containment
 	// Stores found element in val
-	virtual bool find(T &val) const = 0;
+	virtual bool find(T &val) = 0;
 };
 
 namespace ll {
+
+	// Full support lock free ll
+	template<class T>
+	class LockFreeLL : ILinkedList<T> {
+	private:
+		// Regular Linked-List Node
+		class Node {
+		public:
+			MarkableReference<Node> next;
+			T val;
+
+			Node() {} // Dummy node for head
+			Node(T val) : val(val) {}
+		};
+
+		// Typedef to condense code later
+		typedef MarkableReference<Node> MNode;
+
+		MNode head;
+		std::atomic<size_t> curSize;
+
+	public:
+		// Construct with dummy head
+		LockFreeLL() : head(new Node()), curSize(0) {}
+
+		// Destruct, free all nodes
+		virtual ~LockFreeLL() {
+			MNode curr = head;
+			while (curr.getRef() != nullptr) {
+				MNode next = curr.getRef()->next;
+				delete curr.getRef();
+				curr = next;
+			}
+		}
+
+		// Returns the head. Not thread safe.
+		MNode NOT_THREAD_SAFE_getHead() { return head; }
+
+		void safeDelete(Node *toDelete) {
+			// TODO: impl
+		}
+
+
+		// Find a value, internal use
+		std::pair<MNode, MNode> _find(const T &val) {
+			MNode pred, curr, succ;
+
+			// Start at beginning of list
+			retry: while (true) {
+				// Head is guaranteed to exist, dummy node
+				pred = head;
+				curr = pred.getRef()->next;
+
+				// While we have yet to reach the end of the list
+				while (curr.getRef() != nullptr) {
+					succ = curr.getRef()->next;
+
+					while (succ.getMark()) {
+						// Try to physically delete the logically deleted node
+                        Node *expectedRef = curr.getRef();
+                        bool expectedMark = false;
+                        Node *requiredRef = succ.getRef();
+                        bool requiredMark = false;
+
+						if (!(pred.getRef()->next.compareExchangeBothWeak(
+							expectedRef,
+							expectedMark,
+							requiredRef,
+							requiredMark
+						))) goto retry;
+
+						// Move and free mem
+						Node *toDelete = curr.getRef();
+
+						curr = curr.getRef()->next;
+						succ = succ.getRef()->next;
+
+						safeDelete(toDelete);
+					}
+
+					// If we found it, return
+					if (curr.getRef()->val == val)
+						return { pred, curr };
+
+					// Move
+					pred = curr;
+					curr = succ;
+				}
+
+				// Wasn't found, null curr
+				return { pred, curr };
+			}
+		}
+
+		// Add item to list
+		void add(const T &val) {
+			Node *toBeAdded = new Node(val);
+
+			while (true) {
+				// Find our val
+				auto [ pred, curr ] = _find(val);
+
+				// Item already exists
+				if (curr.getRef() != nullptr &&
+					curr.getRef()->val == val) return;
+
+				// Attempt to link it in with CAS
+				MNode node(toBeAdded);
+				node.getRef()->next = curr;
+
+                Node *expectedRef = curr.getRef();
+                bool expectedMark = false;
+                Node *requiredRef = node.getRef();
+                bool requiredMark = false;
+
+                if (pred.getRef()->next.compareExchangeBothWeak(
+                    expectedRef,
+                    expectedMark,
+                    requiredRef,
+                    requiredMark
+                )) {
+                    curSize++;
+                    return;
+                }
+			}
+		}
+
+		// Remove item from list
+		bool remove(const T &val) {
+			while (true) {
+				auto [ pred, curr ] = _find(val);
+
+				// We didn't find it, stop
+				if (curr.getRef() == nullptr ||
+					curr.getRef()->val != val) return false;
+
+				// Logically delete node by marking it's successor
+				MNode succ = curr.getRef()->next;
+
+				Node *expectedRef = succ.getRef();
+				bool expectedMark = false;
+				Node *requiredRef = succ.getRef();
+				bool requiredMark = true;
+
+				// Logicall deletion, might need to retry
+				if (!(curr.getRef()->next.compareExchangeBothWeak(
+					expectedRef,
+					expectedMark,
+					requiredRef,
+					requiredMark
+				))) continue;
+
+				// It worked, attempt physical!
+				Node *toDelete = curr.getRef();
+				expectedRef = curr.getRef();
+				expectedMark = false;
+				requiredRef = succ.getRef();
+				requiredMark = false;
+
+				// If cut was successful, free mem
+				// If it doesn't work immediately, don't worry about it
+				// _find will clean
+				if (pred.getRef()->next.compareExchangeBothWeak(
+					expectedRef,
+					expectedMark,
+					requiredRef,
+					requiredMark
+				)) safeDelete(toDelete);
+
+				curSize--;
+				return true;
+			}
+		}
+
+		// Returns true if the item is in the list,
+		// parameter updated
+		bool find(T &val) {
+			auto [ _, curr ] = _find(val);
+			if (curr.getRef() != nullptr &&
+				curr.getRef()->val == val) {
+				val = curr.getRef()->val;
+				return true;
+			}
+
+			return false;
+		}
+
+		// Get current size
+		size_t size() { return curSize; }
+	};
 
 	// Lock free linked list
 	// No support for deletion
@@ -90,7 +281,7 @@ namespace ll {
 			}
 		}
 
-		bool find(T &val) const {
+		bool find(T &val) {
 			Node *curr = head->next;
 
 			while (curr != nullptr) {
@@ -243,7 +434,7 @@ namespace ll {
 		}
 
 		// Return existence, store val in param
-		bool find(T &val) const {
+		bool find(T &val) {
 			// Empty list
 			if (head->next == nullptr)
 				return false;
