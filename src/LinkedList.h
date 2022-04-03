@@ -27,9 +27,10 @@ namespace ll {
 		public:
 			MarkableReference<Node> next;
 			T val;
+			bool isCap;
 
-			Node() {} // Dummy node for head
-			Node(T val) : val(val) {}
+			Node() : isCap(true) {} // Dummy node for head and tail
+			Node(T val) : val(val), isCap(false) {}
 		};
 
 		// Typedef to condense code later
@@ -40,7 +41,11 @@ namespace ll {
 
 	public:
 		// Construct with dummy head
-		LockFreeLL() : head(new Node()), curSize(0) {}
+		LockFreeLL() : curSize(0) {
+			// Make head and tail, both caps
+			head = MNode(new Node());
+			head.getRef()->next = MNode(new Node());
+		}
 
 		// Destruct, free all nodes
 		virtual ~LockFreeLL() {
@@ -59,7 +64,6 @@ namespace ll {
 			// TODO: impl
 		}
 
-
 		// Find a value, internal use
 		std::pair<MNode, MNode> _find(const T &val) {
 			MNode pred, curr, succ;
@@ -71,7 +75,7 @@ namespace ll {
 				curr = pred.getRef()->next;
 
 				// While we have yet to reach the end of the list
-				while (curr.getRef() != nullptr) {
+				while (!curr.getRef()->isCap) {
 					succ = curr.getRef()->next;
 
 					while (succ.getMark()) {
@@ -119,8 +123,8 @@ namespace ll {
 				// Find our val
 				auto [ pred, curr ] = _find(val);
 
-				// Item already exists
-				if (curr.getRef() != nullptr &&
+				// Item already exists (don't match with cap)
+				if (!curr.getRef()->isCap &&
 					curr.getRef()->val == val) return;
 
 				// Attempt to link it in with CAS
@@ -150,7 +154,7 @@ namespace ll {
 				auto [ pred, curr ] = _find(val);
 
 				// We didn't find it, stop
-				if (curr.getRef() == nullptr ||
+				if (curr.getRef()->isCap ||
 					curr.getRef()->val != val) return false;
 
 				// Logically delete node by marking it's successor
@@ -195,7 +199,7 @@ namespace ll {
 		// parameter updated
 		bool find(T &val) {
 			auto [ _, curr ] = _find(val);
-			if (curr.getRef() != nullptr &&
+			if (!curr.getRef()->isCap &&
 				curr.getRef()->val == val) {
 				val = curr.getRef()->val;
 				return true;

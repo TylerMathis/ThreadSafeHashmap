@@ -87,7 +87,8 @@ int main() {
 	int found = 0;
 	while (head.getRef() != nullptr)
 		head = head.getRef()->next, found++;
-	assert(found == LIM + 1);
+	// +2 for head and tail
+	assert(found == LIM + 2);
 
 	cout << "Checking threaded containment...\n";
 	for (int thread = 0; thread < THREADS; thread++)
