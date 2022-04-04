@@ -86,10 +86,10 @@ int main() {
 	assert(threadedList.size() == LIM);
 	auto curr = threadedList.NOT_THREAD_SAFE_getHead();
 	int found = 0;
-	while (curr.getRef() != nullptr) {
-		assert(curr.getRef()->watchers == 0);
+	while (curr != nullptr) {
+		assert(curr->watchers == 0);
 		found++;
-		curr = curr.getRef()->next;
+		curr = curr->next.getRef();
 	}
 	assert(found == LIM + 2);
 
