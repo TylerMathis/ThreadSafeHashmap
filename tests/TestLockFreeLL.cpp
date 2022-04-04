@@ -65,8 +65,9 @@ int main() {
 	};
 
 	auto removeWorker = [&threadedList](int start, int lim, int inc) {
-		for (int x = start; x < lim; x += inc)
+		for (int x = start; x < lim; x += inc) {
 			assert(threadedList.remove(x));
+		}
 	};
 
 	const int THREADS = 4, LIM = 1'000;
@@ -83,11 +84,13 @@ int main() {
 
 	cout << "Checking size and connectivity...\n";
 	assert(threadedList.size() == LIM);
-	auto head = threadedList.NOT_THREAD_SAFE_getHead();
+	auto curr = threadedList.NOT_THREAD_SAFE_getHead();
 	int found = 0;
-	while (head.getRef() != nullptr)
-		head = head.getRef()->next, found++;
-	// +2 for head and tail
+	while (curr.getRef() != nullptr) {
+		assert(curr.getRef()->watchers == 0);
+		found++;
+		curr = curr.getRef()->next;
+	}
 	assert(found == LIM + 2);
 
 	cout << "Checking threaded containment...\n";

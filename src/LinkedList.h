@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <mutex>
 #include <atomic>
+#include <assert.h>
 #include "MarkableReference.h"
 
 // Linked list abstract
@@ -22,6 +23,8 @@ namespace ll {
 	template<class T>
 	class LockFreeLL : ILinkedList<T> {
 	private:
+		std::mutex mtx;
+
 		// Regular Linked-List Node
 		class Node {
 		public:
@@ -29,12 +32,24 @@ namespace ll {
 			T val;
 			bool isCap;
 
-			Node() : isCap(true) {} // Dummy node for head and tail
-			Node(T val) : val(val), isCap(false) {}
+			// Keep track of how many people are watching this reference
+			std::atomic<int> watchers;
+
+			Node() : isCap(true), watchers(0) {} // Dummy node for head and tail
+			Node(T val) : val(val), isCap(false), watchers(0) {}
 		};
 
 		// Typedef to condense code later
 		typedef MarkableReference<Node> MNode;
+
+		// Abstraction layer for lots of watches
+		MNode getAndWatch(MNode &wrapper) {
+			wrapper.getRef()->watchers++;
+			return wrapper;
+		}
+		void stopWatching(MNode &wrapper) {
+			wrapper.getRef()->watchers--;
+		}
 
 		MNode head;
 		std::atomic<size_t> curSize;
@@ -57,62 +72,86 @@ namespace ll {
 			}
 		}
 
+		void print() {
+			// Forced critical section to print
+			mtx.lock();
+			MNode curr = getAndWatch(head.getRef()->next);
+			while (!curr.getRef()->isCap) {
+				std::cout << curr.getRef()->val << " ";
+				MNode old = curr;
+				curr = getAndWatch(curr.getRef()->next);
+				stopWatching(old);
+			}
+			std::cout << "\n";
+			mtx.unlock();
+		}
+
 		// Returns the head. Not thread safe.
 		MNode NOT_THREAD_SAFE_getHead() { return head; }
 
 		void safeDelete(Node *toDelete) {
-			// TODO: impl
+			while (toDelete->watchers > 0);
+			delete toDelete;
 		}
 
 		// Find a value, internal use
+		// Note that we do not stop watching returned nodes
+		// This *must* be cleaned up by the callee
 		std::pair<MNode, MNode> _find(const T &val) {
 			MNode pred, curr, succ;
 
-			// Start at beginning of list
-			retry: while (true) {
-				// Head is guaranteed to exist, dummy node
-				pred = head;
-				curr = pred.getRef()->next;
+			// Allow ourselves to jump back and retry
+retry:;
 
-				// While we have yet to reach the end of the list
-				while (!curr.getRef()->isCap) {
-					succ = curr.getRef()->next;
+			// Head is guaranteed to exist, dummy node
+			pred = getAndWatch(head);
+			curr = getAndWatch(pred.getRef()->next);
 
-					while (succ.getMark()) {
-						// Try to physically delete the logically deleted node
-                        Node *expectedRef = curr.getRef();
-                        bool expectedMark = false;
-                        Node *requiredRef = succ.getRef();
-                        bool requiredMark = false;
+			// While we have yet to reach the end of the list
+			while (!curr.getRef()->isCap) {
+				succ = curr.getRef()->next;
 
-						if (!(pred.getRef()->next.compareExchangeBothWeak(
-							expectedRef,
-							expectedMark,
-							requiredRef,
-							requiredMark
-						))) goto retry;
+				while (succ.getMark()) {
+					// Try to physically delete the logically deleted node
+					Node *expectedRef = curr.getRef();
+					bool expectedMark = false;
+					Node *requiredRef = succ.getRef();
+					bool requiredMark = false;
 
-						// Move and free mem
-						Node *toDelete = curr.getRef();
-
-						curr = curr.getRef()->next;
-						succ = succ.getRef()->next;
-
-						safeDelete(toDelete);
+					if (!(pred.getRef()->next.compareExchangeBothWeak(
+						expectedRef,
+						expectedMark,
+						requiredRef,
+						requiredMark
+					))) {
+						stopWatching(pred);
+						stopWatching(curr);
+						goto retry;
 					}
 
-					// If we found it, return
-					if (curr.getRef()->val == val)
-						return { pred, curr };
+					// Move and free mem
+					Node *toDelete = curr.getRef();
 
-					// Move
-					pred = curr;
-					curr = succ;
+					curr = getAndWatch(curr.getRef()->next);
+					succ = curr.getRef()->next;
+
+					toDelete->watchers--;
+					safeDelete(toDelete);
 				}
 
-				// Wasn't found, null curr
-				return { pred, curr };
+				// If we found it, return
+				if (succ.getRef() == nullptr ||
+					curr.getRef()->val == val)
+					return { pred, curr };
+
+				// Move
+				stopWatching(pred);
+				pred = curr;
+				curr = getAndWatch(succ);
 			}
+
+			// Wasn't found, capped curr
+			return { pred, curr };
 		}
 
 		// Add item to list
@@ -125,26 +164,36 @@ namespace ll {
 
 				// Item already exists (don't match with cap)
 				if (!curr.getRef()->isCap &&
-					curr.getRef()->val == val) return;
+					curr.getRef()->val == val) {
+					stopWatching(pred);
+					stopWatching(curr);
+					delete toBeAdded;
+					return;
+				}
 
+				// Can now guarantee that curr is the tail (which is a cap)
 				// Attempt to link it in with CAS
+				toBeAdded->next = curr;
 				MNode node(toBeAdded);
-				node.getRef()->next = curr;
 
-                Node *expectedRef = curr.getRef();
-                bool expectedMark = false;
-                Node *requiredRef = node.getRef();
-                bool requiredMark = false;
+				Node *expectedRef = curr.getRef();
+				bool expectedMark = false;
+				Node *requiredRef = node.getRef();
+				bool requiredMark = false;
 
-                if (pred.getRef()->next.compareExchangeBothWeak(
-                    expectedRef,
-                    expectedMark,
-                    requiredRef,
-                    requiredMark
-                )) {
-                    curSize++;
-                    return;
-                }
+				bool success = pred.getRef()->next.compareExchangeBothWeak(
+					expectedRef,
+					expectedMark,
+					requiredRef,
+					requiredMark
+				);
+					stopWatching(pred);
+					stopWatching(curr);
+
+				if (success) {
+					curSize++;
+					return;
+				}
 			}
 		}
 
@@ -155,7 +204,11 @@ namespace ll {
 
 				// We didn't find it, stop
 				if (curr.getRef()->isCap ||
-					curr.getRef()->val != val) return false;
+					curr.getRef()->val != val) {
+					stopWatching(pred);
+					stopWatching(curr);
+					return false;
+				}
 
 				// Logically delete node by marking it's successor
 				MNode succ = curr.getRef()->next;
@@ -165,16 +218,21 @@ namespace ll {
 				Node *requiredRef = succ.getRef();
 				bool requiredMark = true;
 
-				// Logicall deletion, might need to retry
+				// Logical deletion, might need to retry
 				if (!(curr.getRef()->next.compareExchangeBothWeak(
 					expectedRef,
 					expectedMark,
 					requiredRef,
 					requiredMark
-				))) continue;
+				))) {
+					stopWatching(pred);
+					stopWatching(curr);
+					continue;
+				}
 
 				// It worked, attempt physical!
 				Node *toDelete = curr.getRef();
+
 				expectedRef = curr.getRef();
 				expectedMark = false;
 				requiredRef = succ.getRef();
@@ -183,14 +241,21 @@ namespace ll {
 				// If cut was successful, free mem
 				// If it doesn't work immediately, don't worry about it
 				// _find will clean
-				if (pred.getRef()->next.compareExchangeBothWeak(
+				bool wasCut = pred.getRef()->next.compareExchangeBothWeak(
 					expectedRef,
 					expectedMark,
 					requiredRef,
 					requiredMark
-				)) safeDelete(toDelete);
-
+				);
 				curSize--;
+
+				stopWatching(pred);
+				stopWatching(curr);
+
+				// Free ourselves
+				if (wasCut)
+					safeDelete(toDelete);
+
 				return true;
 			}
 		}
@@ -198,14 +263,22 @@ namespace ll {
 		// Returns true if the item is in the list,
 		// parameter updated
 		bool find(T &val) {
-			auto [ _, curr ] = _find(val);
+			auto [ pred, curr ] = _find(val);
+
+			bool found = false;
+
+			// If we have a real internal node that matches us
 			if (!curr.getRef()->isCap &&
-				curr.getRef()->val == val) {
+				curr.getRef()->val == val &&
+				!curr.getRef()->next.getMark()) {
 				val = curr.getRef()->val;
-				return true;
+				found = true;
 			}
 
-			return false;
+			stopWatching(pred);
+			stopWatching(curr);
+
+			return found;
 		}
 
 		// Get current size
