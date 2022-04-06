@@ -184,7 +184,7 @@ retry:;
 				auto [ pred, curr ] = _find(val);
 
 				// We didn't find it, stop
-				if (curr->isCap || curr->val != val) {
+				if (curr->isCap || !(curr->val == val)) {
 					stopWatching(pred);
 					stopWatching(curr);
 					return false;

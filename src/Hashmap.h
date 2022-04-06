@@ -83,6 +83,13 @@ namespace tshm {
 
 			return {false, V{}};
 		}
+
+		// Remove a key from the map, only works
+		// if your underlying container supports deletions
+		bool remove(const K &key) {
+			size_t index = getHashedIndex(key);
+			return hashmap[index].remove(TypedEntry(key));
+		}
 	};
 
 	/* Hashmap with managed threads

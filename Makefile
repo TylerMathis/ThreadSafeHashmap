@@ -40,6 +40,10 @@ bench_hashmap: benches/BenchHashmap.cpp
 	g++ benches/BenchHashmap.cpp -O0 -std=c++17 -Wall -pthread -o bench && ./bench;
 	rm bench;
 
+bench_add_only_hashmap: benches/BenchAddOnlyHashmap.cpp
+	g++ benches/BenchAddOnlyHashmap.cpp -O0 -std=c++17 -Wall -pthread -o bench && ./bench;
+	rm bench;
+
 bench_hashset: benches/BenchHashset.cpp
 	g++ benches/BenchHashset.cpp -O0 -std=c++17 -Wall -pthread -o bench && ./bench;
 	rm bench;
