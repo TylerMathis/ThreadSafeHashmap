@@ -16,6 +16,10 @@ test_lockable_ll: tests/TestLockableLL.cpp
 	g++ tests/TestLockableLL.cpp -O3 -std=c++17 -Wall -pthread -o test && ./test;
 	rm test;
 
+test_lock_free_ll: tests/TestLockFreeLL.cpp
+	g++ tests/TestLockFreeLL.cpp -O3 -std=c++17 -Wall -pthread -o test && ./test;
+	rm test;
+
 test_add_only_lock_free_ll: tests/TestAddOnlyLockFreeLL.cpp
 	g++ tests/TestAddOnlyLockFreeLL.cpp -O3 -std=c++17 -Wall -pthread -o test && ./test;
 	rm test;
@@ -34,6 +38,10 @@ bench: benches/Bench*.cpp
 
 bench_hashmap: benches/BenchHashmap.cpp
 	g++ benches/BenchHashmap.cpp -O0 -std=c++17 -Wall -pthread -o bench && ./bench;
+	rm bench;
+
+bench_add_only_hashmap: benches/BenchAddOnlyHashmap.cpp
+	g++ benches/BenchAddOnlyHashmap.cpp -O0 -std=c++17 -Wall -pthread -o bench && ./bench;
 	rm bench;
 
 bench_hashset: benches/BenchHashset.cpp

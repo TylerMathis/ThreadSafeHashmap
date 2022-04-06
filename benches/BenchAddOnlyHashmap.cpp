@@ -16,12 +16,12 @@ using tshm::Hashmap;
 
 #define sz(x) (int)(x).size()
 
-vector<int> CAPACITY_TESTS = {25'000, 250'000, 2'500'000};
-vector<int> LIM_TESTS = {5'000, 50'000, 500'000};
+vector<int> CAPACITY_TESTS = {50'000, 500'000, 5'000'000};
+vector<int> LIM_TESTS = {10'000, 100'000, 1'000'000};
 vector<int> THREAD_TESTS = {1, 2, 4, 8, 16, 20};
 
 int main() {
-	cout << "\n\nBENCHING HASHMAP\n\n";
+	cout << "\n\nBENCHING ADD ONLY HASHMAP\n\n";
 
 	// Get random numbers for use later
 	srand(time(NULL));
@@ -41,28 +41,21 @@ int main() {
 				int LIM = LIM_TESTS[j];
 				int THREADS = THREAD_TESTS[k];
 
-				Hashmap<int, int, ll::LockFreeLL> map(CAPACITY);
+				Hashmap<int, int> map(CAPACITY);
 
 				auto putJob = [&](int start, int end) {
 					for (int i = start; i <= end; i++)
 						map.put(randoms[i], i);
 				};
 
-				auto removeJob = [&](int start, int end) {
-					for (int i = start; i <= end; i++)
-						map.remove(randoms[i]);
-				};
 
 				int gap = LIM / THREADS;
 				vector<thread> threads;
 
 				auto startTime = chrono::system_clock::now();
 
-				for (int thread = 0; thread < THREADS; thread++) {
-					int start = thread * gap;
-					threads.emplace_back(putJob, start, start + gap);
-					threads.emplace_back(removeJob, start, start + gap);
-				}
+				for (int thread = 0; thread < THREADS; thread++)
+					threads.emplace_back(putJob, thread * gap, thread * gap + gap);
 				for (thread &t : threads)
 					t.join();
 
@@ -77,7 +70,7 @@ int main() {
 	cout << "Results summary:\n";
 	cout << "----------------\n";
 
-	ofstream res("analysis/data/hashmap.csv");
+	ofstream res("analysis/data/add_only_hashmap.csv");
 	res << "capacity,limit,threads,runtime\n";
 	for (int i = 0; i < sz(CAPACITY_TESTS); i++) {
 		cout << "Tests for capacity " << CAPACITY_TESTS[i] << "\n";
