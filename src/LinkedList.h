@@ -71,21 +71,6 @@ namespace ll {
 			}
 		}
 
-		void print() {
-			// Forced critical section to print
-			mtx.lock();
-			Node *curr = getAndWatch(head->next.getRef());
-			while (!curr->isCap) {
-				if (!curr->next.getMark())
-					std::cout << curr->val << " ";
-				Node *old = curr;
-				curr = getAndWatch(curr->next.getRef());
-				stopWatching(old);
-			}
-			std::cout << "\n";
-			mtx.unlock();
-		}
-
 		// Returns the head. Not thread safe.
 		Node *NOT_THREAD_SAFE_getHead() { return head; }
 
