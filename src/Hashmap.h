@@ -10,7 +10,7 @@ template<class K, class V>
 class IHashmap {
 public:
 	virtual void put(const K &key, const V &val) = 0;
-	virtual std::pair<bool, V> get(const K &key) const = 0;
+	virtual std::pair<bool, V> get(const K &key) = 0;
 };
 
 // Thread safe hashmap
@@ -74,7 +74,7 @@ namespace tshm {
 		}
 
 		// Return the status of containment and value
-		std::pair<bool, V> get(const K &key) const {
+		std::pair<bool, V> get(const K &key) {
 			size_t index = getHashedIndex(key);
 
 			TypedEntry entry(key);
@@ -149,7 +149,7 @@ namespace tshm {
 
 		* TODO: Implement promises
 		*/
-		std::pair<bool, V> get(const K &key) const {
+		std::pair<bool, V> get(const K &key) {
 			// Spin until all puts are done
 			while (threadLock.active);
 

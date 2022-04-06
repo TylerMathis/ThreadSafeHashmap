@@ -6,7 +6,7 @@ template<class T>
 class IHashset {
 public:
 	virtual void insert(const T &item) = 0;
-	virtual bool contains(T item) const = 0;
+	virtual bool contains(T item) = 0;
 };
 
 // Thread safe hashset
@@ -48,7 +48,7 @@ namespace tshs {
 		}
 
 		// Returns whether the item is in the Hashset
-		bool contains(T item) const {
+		bool contains(T item) {
 			size_t index = getHashedIndex(item);
 			return hashset[index].find(item);
 		}
