@@ -31,4 +31,4 @@ Benchmarking description and requirements:
 To spin up our benchmark visualizations, you will need a Conda installation. If you are unfamiliar with Conda, I recommend installing `miniconda`. Once installed, create a new virtual environment with `conda create -n <name>`. Then, you can install the visualization dependencies with `conda install --file analysis/conda_req.txt`. Finally, spin up a Jupyter Labs sessions with `jupyter-lab`, and open and run the `analysis/notebook.ipynb` to view visualizations.
 
 ## Research Paper
-For more information on our research, take a look at our [research paper]() or our [class presentation](https://www.youtube.com/watch?v=sJyN7pZLt54)!
+For more information on our research, take a look at our [research paper](https://drive.google.com/file/d/1yHDpvQzmfGA9zntTmVzWkE9dsDYwKQdy/view?usp=sharing) or our [class presentation](https://www.youtube.com/watch?v=sJyN7pZLt54)!
